@@ -28,9 +28,17 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useAppContext } from '@/contexts/AppContext';
 import { Badge } from '@/components/ui/badge';
+import { useAppContext } from '@/contexts/AppContext';
 import { Product, SubscriptionTier } from '@/types';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
+import { toast } from '@/components/ui/use-toast';
+import ProductForm, { ProductFormValues } from '@/components/ProductForm';
 
 const ProductManagementPage = () => {
   const navigate = useNavigate();
@@ -38,10 +46,12 @@ const ProductManagementPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<keyof Product | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [showProductDialog, setShowProductDialog] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // In a real application, these would come from an API
   // For demo purposes, we'll use some mock data
-  const mockProducts: Product[] = [
+  const [products, setProducts] = useState<Product[]>([
     {
       id: 'p1',
       name: 'Farm Fresh Eggs',
@@ -97,7 +107,7 @@ const ProductManagementPage = () => {
       stock: 6,
       deliveryOption: 'pickup'
     }
-  ];
+  ]);
 
   // Mock subscription data - in real app would come from user profile
   const sellerSubscription: SubscriptionTier = 'basic';
@@ -112,11 +122,38 @@ const ProductManagementPage = () => {
   };
 
   const productLimit = getProductLimit(sellerSubscription);
-  const productCount = mockProducts.length;
+  const productCount = products.length;
   const canAddMoreProducts = typeof productLimit === 'string' || productCount < productLimit;
 
+  const handleAddProduct = (formData: ProductFormValues) => {
+    setSubmitting(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      // Create a new product with the form data
+      const newProduct: Product = {
+        id: `p${Math.floor(Math.random() * 1000)}`,
+        ...formData,
+        sellerId: 's5', // In a real app, this would be the current user's ID
+      };
+      
+      // Add the new product to the list
+      setProducts([...products, newProduct]);
+      
+      // Show success message
+      toast({
+        title: "Product added",
+        description: `${formData.name} has been added to your product catalog.`,
+      });
+      
+      // Close the dialog
+      setShowProductDialog(false);
+      setSubmitting(false);
+    }, 1000);
+  };
+
   // Filter products based on search query
-  const filteredProducts = mockProducts.filter(product => 
+  const filteredProducts = products.filter(product => 
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     product.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -204,7 +241,7 @@ const ProductManagementPage = () => {
           </div>
         </div>
         <Button 
-          onClick={() => console.log('Add new product')}
+          onClick={() => setShowProductDialog(true)}
           className="mt-4 md:mt-0 bg-market-primary hover:bg-market-dark flex items-center gap-2"
           disabled={!canAddMoreProducts}
         >
@@ -212,6 +249,20 @@ const ProductManagementPage = () => {
           Add New Product
         </Button>
       </div>
+
+      {/* Add Product Dialog */}
+      <Dialog open={showProductDialog} onOpenChange={setShowProductDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Add New Product</DialogTitle>
+          </DialogHeader>
+          <ProductForm 
+            onSubmit={handleAddProduct} 
+            onCancel={() => setShowProductDialog(false)} 
+            isSubmitting={submitting}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Product limit info */}
       <Card className="mb-6">
