@@ -136,6 +136,20 @@ const SellerDashboardPage = () => {
     { id: 'ORD-003', customer: 'Bob Johnson', date: '2023-08-13', amount: 45.20, status: 'Pending' },
   ];
 
+  const handleFeatureClick = (featureId: string) => {
+    switch(featureId) {
+      case 'products':
+        navigate('/seller/products');
+        break;
+      case 'analytics-basic':
+        // This would navigate to analytics page in a real app
+        console.log('Navigate to basic analytics');
+        break;
+      default:
+        console.log(`Feature ${featureId} clicked`);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
@@ -221,7 +235,11 @@ const SellerDashboardPage = () => {
             Settings;
           
           return (
-            <Card key={feature.id} className="hover:shadow-md transition-shadow">
+            <Card 
+              key={feature.id} 
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => handleFeatureClick(feature.id)}
+            >
               <CardContent className="pt-6">
                 <div className="flex items-start">
                   <div className="bg-market-light p-2 rounded-lg mr-4">
@@ -322,7 +340,11 @@ const SellerDashboardPage = () => {
       {/* Quick Actions */}
       <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Button variant="outline" className="flex flex-col h-24 items-center justify-center gap-1">
+        <Button 
+          variant="outline" 
+          className="flex flex-col h-24 items-center justify-center gap-1"
+          onClick={() => navigate('/seller/products')}
+        >
           <Package className="h-6 w-6" />
           <span>Add Product</span>
         </Button>
