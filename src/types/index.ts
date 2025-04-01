@@ -40,3 +40,12 @@ export interface CartItem {
   product: Product;
   quantity: number;
 }
+
+export interface DashboardFeature {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  availableIn: SubscriptionTier[];
+  comingSoon?: boolean;
+}
