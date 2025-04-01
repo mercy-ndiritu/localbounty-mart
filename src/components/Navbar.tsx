@@ -54,7 +54,7 @@ const Navbar = () => {
                 </Button>
               </Link>
             ) : (
-              <Link to={userType === 'seller' ? "/dashboard" : "/account"}>
+              <Link to={userType === 'seller' ? "/seller/dashboard" : "/account"}>
                 <Button variant="outline" size="sm" className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   {userType === 'seller' ? 'Dashboard' : 'My Account'}
@@ -128,7 +128,7 @@ const Navbar = () => {
                 </Link>
               ) : (
                 <Link 
-                  to={userType === 'seller' ? "/dashboard" : "/account"} 
+                  to={userType === 'seller' ? "/seller/dashboard" : "/account"} 
                   className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
                   onClick={() => setMobileMenuOpen(false)}
                 >
