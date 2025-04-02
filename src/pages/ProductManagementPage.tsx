@@ -130,11 +130,17 @@ const ProductManagementPage = () => {
     
     // Simulate API call
     setTimeout(() => {
-      // Create a new product with the form data
+      // Create a new product with the form data, ensuring all required fields are present
       const newProduct: Product = {
         id: `p${Math.floor(Math.random() * 1000)}`,
-        ...formData,
+        name: formData.name,
+        description: formData.description,
+        price: formData.price,
+        image: formData.image || '/placeholder.svg', // Ensure image has a default value
+        category: formData.category,
         sellerId: 's5', // In a real app, this would be the current user's ID
+        stock: formData.stock,
+        deliveryOption: formData.deliveryOption,
       };
       
       // Add the new product to the list

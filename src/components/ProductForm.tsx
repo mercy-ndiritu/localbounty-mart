@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,11 +30,12 @@ interface ProductFormProps {
   isSubmitting?: boolean;
 }
 
+// Define strict validation rules to match Product type requirements
 const formSchema = z.object({
   name: z.string().min(3, { message: 'Product name must be at least 3 characters' }),
   description: z.string().min(10, { message: 'Description must be at least 10 characters' }),
   price: z.coerce.number().positive({ message: 'Price must be a positive number' }),
-  image: z.string().default('/placeholder.svg'),
+  image: z.string().default('/placeholder.svg'), // Default value provided
   category: z.enum(['groceries', 'handmade', 'farm']),
   stock: z.coerce.number().int().nonnegative({ message: 'Stock must be a positive integer' }),
   deliveryOption: z.enum(['delivery', 'pickup', 'both']),
