@@ -1,17 +1,18 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { CartItem, Product } from '../types';
+import { CartItem, Product, SubscriptionTier } from '../types';
 import { toast } from "@/components/ui/use-toast";
 
 interface AppContextType {
   cart: CartItem[];
   userType: 'customer' | 'seller' | 'guest';
+  subscriptionTier: SubscriptionTier;
   addToCart: (product: Product, quantity: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   cartTotal: number;
   setUserType: (type: 'customer' | 'seller' | 'guest') => void;
+  setSubscriptionTier: (tier: SubscriptionTier) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -19,6 +20,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [userType, setUserType] = useState<'customer' | 'seller' | 'guest'>('guest');
+  const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>('basic');
 
   // Calculate cart total
   const cartTotal = cart.reduce((total, item) => total + (item.product.price * item.quantity), 0);
@@ -69,7 +71,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setCart([]);
   };
 
-  // Load cart from localStorage on component mount
+  // Load from localStorage on component mount
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
@@ -84,28 +86,38 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (savedUserType) {
       setUserType(savedUserType as 'customer' | 'seller' | 'guest');
     }
+
+    const savedSubscriptionTier = localStorage.getItem('subscriptionTier');
+    if (savedSubscriptionTier) {
+      setSubscriptionTier(savedSubscriptionTier as SubscriptionTier);
+    }
   }, []);
 
-  // Save cart to localStorage on cart change
+  // Save to localStorage on state change
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  // Save userType to localStorage on userType change
   useEffect(() => {
     localStorage.setItem('userType', userType);
   }, [userType]);
+
+  useEffect(() => {
+    localStorage.setItem('subscriptionTier', subscriptionTier);
+  }, [subscriptionTier]);
 
   return (
     <AppContext.Provider value={{
       cart,
       userType,
+      subscriptionTier,
       addToCart,
       removeFromCart,
       updateQuantity,
       clearCart,
       cartTotal,
       setUserType,
+      setSubscriptionTier,
     }}>
       {children}
     </AppContext.Provider>

@@ -12,22 +12,24 @@ import {
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/contexts/AppContext';
+import { SubscriptionTier } from '@/types';
 
 const SubscriptionSuccessPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { setUserType } = useAppContext();
+  const { setUserType, setSubscriptionTier } = useAppContext();
   
   // Get the tier from the URL query params or default to 'standard'
   const searchParams = new URLSearchParams(location.search);
-  const tier = searchParams.get('tier') || 'standard';
+  const tier = (searchParams.get('tier') || 'standard') as SubscriptionTier;
   const fromTier = searchParams.get('from') || 'basic';
   
-  // Update the user type in the context
+  // Update the user type and subscription tier in the context
   useEffect(() => {
     setUserType('seller');
+    setSubscriptionTier(tier);
     // In a real app, this would also update the subscription tier in the user profile
-  }, [setUserType]);
+  }, [setUserType, setSubscriptionTier, tier]);
 
   // Features unlocked with Standard tier
   const newFeatures = [

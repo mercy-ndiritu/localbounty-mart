@@ -24,12 +24,12 @@ const SubscriptionCard = ({
   isPopular = false 
 }: SubscriptionCardProps) => {
   const navigate = useNavigate();
-  const { userType } = useAppContext();
+  const { userType, subscriptionTier } = useAppContext();
   
   const handleSubscribe = () => {
     // In a real app, this would trigger the payment flow
-    // For now, just navigate to the success page with the tier info
-    navigate(`/subscription/success?tier=${id.toLowerCase()}`);
+    // For now, just navigate to the success page with the tier info and current tier
+    navigate(`/subscription/success?tier=${id.toLowerCase()}&from=${subscriptionTier}`);
   };
 
   return (

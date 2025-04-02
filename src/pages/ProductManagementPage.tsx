@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -42,7 +41,7 @@ import ProductForm, { ProductFormValues } from '@/components/ProductForm';
 
 const ProductManagementPage = () => {
   const navigate = useNavigate();
-  const { userType } = useAppContext();
+  const { userType, subscriptionTier } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<keyof Product | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -109,8 +108,8 @@ const ProductManagementPage = () => {
     }
   ]);
 
-  // Mock subscription data - in real app would come from user profile
-  const sellerSubscription: SubscriptionTier = 'basic';
+  // Use subscription tier from context
+  const sellerSubscription = subscriptionTier;
   
   const getProductLimit = (tier: SubscriptionTier) => {
     switch(tier) {

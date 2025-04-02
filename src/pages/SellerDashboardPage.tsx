@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -29,16 +28,16 @@ import { useAppContext } from '@/contexts/AppContext';
 import { DashboardFeature, SubscriptionTier } from '@/types';
 
 const SellerDashboardPage = () => {
-  const { userType } = useAppContext();
+  const { userType, subscriptionTier } = useAppContext();
   const navigate = useNavigate();
   
   // In a real app, this would come from an authenticated user's profile
-  // For demo purposes, we'll hardcode a seller with basic subscription
+  // For demo purposes, we'll hardcode a seller with the subscription tier from context
   const currentSeller = {
     id: 's5',
     name: 'Your Store',
     description: 'Your store description',
-    subscriptionTier: 'basic' as SubscriptionTier,
+    subscriptionTier: subscriptionTier,
     productCount: 5,
     location: 'Your Location',
     rating: 0
@@ -159,12 +158,14 @@ const SellerDashboardPage = () => {
             Welcome back to your {currentSeller.subscriptionTier.charAt(0).toUpperCase() + currentSeller.subscriptionTier.slice(1)} seller account
           </p>
         </div>
-        <Button 
-          onClick={() => navigate('/subscription')}
-          className="mt-4 md:mt-0 bg-market-primary hover:bg-market-dark"
-        >
-          Upgrade Plan
-        </Button>
+        {currentSeller.subscriptionTier !== 'premium' && (
+          <Button 
+            onClick={() => navigate('/subscription')}
+            className="mt-4 md:mt-0 bg-market-primary hover:bg-market-dark"
+          >
+            Upgrade Plan
+          </Button>
+        )}
       </div>
 
       {/* Subscription Info */}
