@@ -19,6 +19,7 @@ import SubscriptionSuccessPage from "./pages/SubscriptionSuccessPage";
 import SellerDashboardPage from "./pages/SellerDashboardPage";
 import ProductManagementPage from "./pages/ProductManagementPage";
 import BasicAnalyticsPage from "./pages/BasicAnalyticsPage";
+import PromotionalToolsPage from "./pages/PromotionalToolsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
                 <Route path="/seller/dashboard" element={<SellerDashboardPage />} />
                 <Route path="/seller/products" element={<ProductManagementPage />} />
                 <Route path="/seller/analytics" element={<BasicAnalyticsPage />} />
+                <Route path="/seller/promotions" element={<PromotionalToolsPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>

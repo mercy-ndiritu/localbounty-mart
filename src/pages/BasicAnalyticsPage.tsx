@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   BarChart4, 
@@ -7,10 +6,13 @@ import {
   Users,
   ShoppingCart,
   DollarSign,
-  Package
+  Package,
+  Megaphone
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAppContext } from '@/contexts/AppContext';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 import { 
   BarChart, 
   Bar, 
@@ -101,6 +103,14 @@ const BasicAnalyticsPage = () => {
             {subscriptionTier === 'basic' ? 'Basic' : 
              subscriptionTier === 'standard' ? 'Enhanced' : 'Advanced'} analytics for your store
           </p>
+        </div>
+        <div className="mt-4 md:mt-0">
+          <Button variant="outline" className="flex items-center gap-2" asChild>
+            <Link to="/seller/promotions">
+              <Megaphone className="h-4 w-4" />
+              <span>View Promotional Tools</span>
+            </Link>
+          </Button>
         </div>
       </div>
 
