@@ -1,8 +1,10 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
+import { useAppContext } from '@/contexts/AppContext';
 
 interface SubscriptionCardProps {
   id: string;
@@ -21,6 +23,15 @@ const SubscriptionCard = ({
   productLimit,
   isPopular = false 
 }: SubscriptionCardProps) => {
+  const navigate = useNavigate();
+  const { userType } = useAppContext();
+  
+  const handleSubscribe = () => {
+    // In a real app, this would trigger the payment flow
+    // For now, just navigate to the success page with the tier info
+    navigate(`/subscription/success?tier=${id.toLowerCase()}`);
+  };
+
   return (
     <Card className={`relative h-full flex flex-col ${isPopular ? 'border-market-primary shadow-lg' : ''}`}>
       {isPopular && (
@@ -55,6 +66,7 @@ const SubscriptionCard = ({
         <Button 
           className={`w-full ${isPopular ? 'bg-market-primary hover:bg-market-dark' : ''}`}
           variant={isPopular ? "default" : "outline"}
+          onClick={handleSubscribe}
         >
           {price === 0 ? 'Start for Free' : 'Subscribe Now'}
         </Button>

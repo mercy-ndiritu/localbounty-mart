@@ -15,6 +15,7 @@ import ProductDetailPage from "./pages/ProductDetailPage";
 import SellersPage from "./pages/SellersPage";
 import CartPage from "./pages/CartPage";
 import SubscriptionPage from "./pages/SubscriptionPage";
+import SubscriptionSuccessPage from "./pages/SubscriptionSuccessPage";
 import SellerDashboardPage from "./pages/SellerDashboardPage";
 import ProductManagementPage from "./pages/ProductManagementPage";
 import NotFound from "./pages/NotFound";
@@ -38,6 +39,7 @@ const App = () => (
                 <Route path="/sellers" element={<SellersPage />} />
                 <Route path="/cart" element={<CartPage />} />
                 <Route path="/subscription" element={<SubscriptionPage />} />
+                <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
                 <Route path="/seller/dashboard" element={<SellerDashboardPage />} />
                 <Route path="/seller/products" element={<ProductManagementPage />} />
                 <Route path="*" element={<NotFound />} />
