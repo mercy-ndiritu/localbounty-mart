@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/contexts/AppContext';
-import { ArrowRight, PackageSearch, LineChart, Tag, Megaphone, Tags } from 'lucide-react';
+import { ArrowRight, PackageSearch, LineChart, Tag, Megaphone, Tags, Truck, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const SellerDashboardPage = () => {
@@ -34,16 +35,16 @@ const SellerDashboardPage = () => {
     {
       title: "Shipping Management",
       description: "Manage shipping options and rates",
-      icon: <PackageSearch className="h-5 w-5" />,
-      link: "/shipping",
+      icon: <Truck className="h-5 w-5" />,
+      link: "/seller/shipping",
       available: subscriptionTier === 'standard' || subscriptionTier === 'premium',
       comingSoon: subscriptionTier === 'basic'
     },
     {
       title: "Customer Support",
       description: "Respond to customer inquiries",
-      icon: <LineChart className="h-5 w-5" />,
-      link: "/customer-support",
+      icon: <MessageSquare className="h-5 w-5" />,
+      link: "/seller/customer-support",
       available: subscriptionTier === 'standard' || subscriptionTier === 'premium',
       comingSoon: subscriptionTier === 'basic'
     },
