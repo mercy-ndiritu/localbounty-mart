@@ -31,8 +31,6 @@ const SellerDashboardPage = () => {
   const { userType, subscriptionTier } = useAppContext();
   const navigate = useNavigate();
   
-  // In a real app, this would come from an authenticated user's profile
-  // For demo purposes, we'll hardcode a seller with the subscription tier from context
   const currentSeller = {
     id: 's5',
     name: 'Your Store',
@@ -43,7 +41,6 @@ const SellerDashboardPage = () => {
     rating: 0
   };
 
-  // Define dashboard features with their availability per subscription tier
   const dashboardFeatures: DashboardFeature[] = [
     {
       id: 'products',
@@ -103,7 +100,6 @@ const SellerDashboardPage = () => {
     }
   ];
   
-  // Filter features based on the current subscription tier
   const availableFeatures = dashboardFeatures.filter(
     feature => feature.availableIn.includes(currentSeller.subscriptionTier)
   );
@@ -112,7 +108,6 @@ const SellerDashboardPage = () => {
     feature => !feature.availableIn.includes(currentSeller.subscriptionTier)
   );
 
-  // Feature limit based on subscription tier
   const getProductLimit = (tier: SubscriptionTier) => {
     switch(tier) {
       case 'basic': return 10;
@@ -122,13 +117,11 @@ const SellerDashboardPage = () => {
     }
   };
 
-  // Calculate product usage percentage
   const productLimit = getProductLimit(currentSeller.subscriptionTier);
   const productUsagePercent = typeof productLimit === 'number' 
     ? Math.min(100, (currentSeller.productCount / productLimit) * 100)
     : 0;
 
-  // For demo, create some mock recent orders
   const recentOrders = [
     { id: 'ORD-001', customer: 'John Doe', date: '2023-08-15', amount: 32.50, status: 'Delivered' },
     { id: 'ORD-002', customer: 'Jane Smith', date: '2023-08-14', amount: 18.75, status: 'Processing' },
@@ -141,8 +134,10 @@ const SellerDashboardPage = () => {
         navigate('/seller/products');
         break;
       case 'analytics-basic':
-        // This would navigate to analytics page in a real app
-        console.log('Navigate to basic analytics');
+        navigate('/seller/analytics');
+        break;
+      case 'analytics-advanced':
+        navigate('/seller/analytics');
         break;
       default:
         console.log(`Feature ${featureId} clicked`);
@@ -168,7 +163,6 @@ const SellerDashboardPage = () => {
         )}
       </div>
 
-      {/* Subscription Info */}
       <Card className="mb-8 border-market-primary">
         <CardHeader className="bg-market-accent/20">
           <CardTitle className="flex justify-between items-center">
@@ -220,7 +214,6 @@ const SellerDashboardPage = () => {
         </CardContent>
       </Card>
 
-      {/* Available Features */}
       <h2 className="text-2xl font-bold mb-4">Available Features</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {availableFeatures.map((feature) => {
@@ -257,7 +250,6 @@ const SellerDashboardPage = () => {
         })}
       </div>
 
-      {/* Locked Features */}
       {lockedFeatures.length > 0 && (
         <>
           <h2 className="text-2xl font-bold mb-4">Upgrade to Unlock</h2>
@@ -302,7 +294,6 @@ const SellerDashboardPage = () => {
         </>
       )}
 
-      {/* Recent Orders */}
       <h2 className="text-2xl font-bold mb-4">Recent Orders</h2>
       <Card className="mb-8">
         <CardContent className="pt-6">
@@ -338,7 +329,6 @@ const SellerDashboardPage = () => {
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
       <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Button 
