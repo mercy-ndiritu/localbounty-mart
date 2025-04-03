@@ -32,8 +32,8 @@ import { Product, Order, OrderStatus } from "./types";
 
 const queryClient = new QueryClient();
 
-// Extend the AppContext with our new Database functionality
-const ExtendedAppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// Using the updated AppProvider that now accepts our database props
+const App = () => {
   // Products state
   const [products, setProducts] = useState<Product[]>([
     {
@@ -228,57 +228,51 @@ const ExtendedAppProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AppProvider 
-      products={products}
-      orders={orders}
-      addProduct={addProduct}
-      updateProduct={updateProduct}
-      deleteProduct={deleteProduct}
-      addOrder={addOrder}
-      updateOrderStatus={updateOrderStatus}
-    >
-      {children}
-    </AppProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AppProvider 
+          products={products}
+          orders={orders}
+          addProduct={addProduct}
+          updateProduct={updateProduct}
+          deleteProduct={deleteProduct}
+          addOrder={addOrder}
+          updateOrderStatus={updateOrderStatus}
+        >
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-grow">
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/products" element={<ProductsPage />} />
+                  <Route path="/products/:id" element={<ProductDetailPage />} />
+                  <Route path="/sellers" element={<SellersPage />} />
+                  <Route path="/cart" element={<CartPage />} />
+                  <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route path="/subscription" element={<SubscriptionPage />} />
+                  <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
+                  <Route path="/seller/dashboard" element={<SellerDashboardPage />} />
+                  <Route path="/seller/products" element={<ProductManagementPage />} />
+                  <Route path="/seller/orders" element={<OrdersManagementPage />} />
+                  <Route path="/seller/analytics" element={<BasicAnalyticsPage />} />
+                  <Route path="/seller/advanced-analytics" element={<AdvancedAnalyticsPage />} />
+                  <Route path="/seller/promotions" element={<PromotionalToolsPage />} />
+                  <Route path="/seller/marketing-automation" element={<MarketingAutomationPage />} />
+                  <Route path="/seller/shipping" element={<ShippingManagementPage />} />
+                  <Route path="/seller/customer-support" element={<CustomerSupportPage />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </main>
+              <Footer />
+            </div>
+          </BrowserRouter>
+        </AppProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <ExtendedAppProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <div className="flex flex-col min-h-screen">
-            <Navbar />
-            <main className="flex-grow">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/products" element={<ProductsPage />} />
-                <Route path="/products/:id" element={<ProductDetailPage />} />
-                <Route path="/sellers" element={<SellersPage />} />
-                <Route path="/cart" element={<CartPage />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/subscription" element={<SubscriptionPage />} />
-                <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
-                <Route path="/seller/dashboard" element={<SellerDashboardPage />} />
-                <Route path="/seller/products" element={<ProductManagementPage />} />
-                <Route path="/seller/orders" element={<OrdersManagementPage />} />
-                <Route path="/seller/analytics" element={<BasicAnalyticsPage />} />
-                <Route path="/seller/advanced-analytics" element={<AdvancedAnalyticsPage />} />
-                <Route path="/seller/promotions" element={<PromotionalToolsPage />} />
-                <Route path="/seller/marketing-automation" element={<MarketingAutomationPage />} />
-                <Route path="/seller/shipping" element={<ShippingManagementPage />} />
-                <Route path="/seller/customer-support" element={<CustomerSupportPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
-            <Footer />
-          </div>
-        </BrowserRouter>
-      </ExtendedAppProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
 
 export default App;

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { CartItem, Product, SubscriptionTier } from '../types';
+import { CartItem, Product, SubscriptionTier, Order, OrderStatus } from '../types';
 import { toast } from "@/components/ui/use-toast";
 
 interface AppContextType {
@@ -13,11 +13,36 @@ interface AppContextType {
   cartTotal: number;
   setUserType: (type: 'customer' | 'seller' | 'guest') => void;
   setSubscriptionTier: (tier: SubscriptionTier) => void;
+  products?: Product[];
+  orders?: Order[];
+  addProduct?: (product: Product) => void;
+  updateProduct?: (updatedProduct: Product) => void;
+  deleteProduct?: (productId: string) => void;
+  addOrder?: (order: Order) => void;
+  updateOrderStatus?: (orderId: string, status: OrderStatus) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider = ({ children }: { children: ReactNode }) => {
+export const AppProvider = ({ 
+  children,
+  products,
+  orders,
+  addProduct,
+  updateProduct,
+  deleteProduct,
+  addOrder,
+  updateOrderStatus
+}: { 
+  children: ReactNode;
+  products?: Product[];
+  orders?: Order[];
+  addProduct?: (product: Product) => void;
+  updateProduct?: (updatedProduct: Product) => void;
+  deleteProduct?: (productId: string) => void;
+  addOrder?: (order: Order) => void;
+  updateOrderStatus?: (orderId: string, status: OrderStatus) => void;
+}) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [userType, setUserType] = useState<'customer' | 'seller' | 'guest'>('guest');
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>('basic');
@@ -118,6 +143,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       cartTotal,
       setUserType,
       setSubscriptionTier,
+      products,
+      orders,
+      addProduct,
+      updateProduct,
+      deleteProduct,
+      addOrder,
+      updateOrderStatus,
     }}>
       {children}
     </AppContext.Provider>
