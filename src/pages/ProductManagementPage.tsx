@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -89,11 +88,11 @@ const ProductManagementPage = () => {
     setTimeout(() => {
       // Create a new product with the form data
       const newProduct: Product = {
-        id: `p${Math.floor(Math.random() * 1000)}`,
+        id: `p${Math.floor(Math.random() * 1000000)}`, // Use a larger random range to avoid collisions
         name: formData.name,
         description: formData.description,
         price: formData.price,
-        image: formData.image || '/placeholder.svg',
+        image: formData.image, // This now comes from the image upload
         category: formData.category,
         sellerId: 's5', // In a real app, this would be the current user's ID
         stock: formData.stock,
@@ -136,7 +135,7 @@ const ProductManagementPage = () => {
         name: formData.name,
         description: formData.description,
         price: formData.price,
-        image: formData.image || editingProduct.image,
+        image: formData.image, // Use the uploaded image or keep existing
         category: formData.category,
         stock: formData.stock,
         deliveryOption: formData.deliveryOption,

@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Product, ProductCategory, DeliveryOption } from '@/types';
 import { toast } from "@/components/ui/use-toast";
+import { Upload, X } from 'lucide-react';
 
 import {
   Form,
@@ -46,6 +47,8 @@ const formSchema = z.object({
 export type ProductFormValues = z.infer<typeof formSchema>;
 
 const ProductForm = ({ product, onSubmit, onCancel, isSubmitting = false }: ProductFormProps) => {
+  const [previewImage, setPreviewImage] = useState<string | null>(product?.image || null);
+  
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,6 +61,44 @@ const ProductForm = ({ product, onSubmit, onCancel, isSubmitting = false }: Prod
       deliveryOption: product?.deliveryOption || 'both',
     },
   });
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Check file size (limit to 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Image must be less than 2MB",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Create a preview URL and set the form value
+    const imageUrl = URL.createObjectURL(file);
+    setPreviewImage(imageUrl);
+    
+    // In a real app, we'd upload to a server or storage service
+    // For now, we'll use the object URL as a placeholder
+    form.setValue('image', imageUrl);
+  };
+  
+  const clearImage = () => {
+    setPreviewImage(null);
+    form.setValue('image', '/placeholder.svg');
+  };
 
   const handleSubmit = form.handleSubmit((data) => {
     onSubmit(data);
@@ -76,6 +117,55 @@ const ProductForm = ({ product, onSubmit, onCancel, isSubmitting = false }: Prod
                 <Input placeholder="Farm Fresh Eggs" {...field} />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Image Upload */}
+        <FormField
+          control={form.control}
+          name="image"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Product Image</FormLabel>
+              <div className="flex flex-col items-center space-y-4">
+                {previewImage ? (
+                  <div className="relative">
+                    <img 
+                      src={previewImage} 
+                      alt="Product preview" 
+                      className="h-48 w-48 object-cover rounded-md border border-gray-200" 
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                      onClick={clearImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-48 w-48 border-2 border-dashed border-gray-300 rounded-md">
+                    <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-500">Click to upload</p>
+                  </div>
+                )}
+                
+                <FormControl>
+                  <Input 
+                    type="file" 
+                    accept="image/*"
+                    className={previewImage ? "hidden" : ""}
+                    onChange={handleImageUpload} 
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                  />
+                </FormControl>
+                <FormMessage />
+              </div>
             </FormItem>
           )}
         />
