@@ -1,23 +1,39 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   ShoppingCart, 
   User, 
   Menu, 
   X, 
   Store, 
-  LogIn 
+  LogIn,
+  LogOut,
+  ShoppingBag
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAppContext } from '@/contexts/AppContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { cart, userType } = useAppContext();
+  const { cart, userType, logout } = useAppContext();
+  const navigate = useNavigate();
 
   // Calculate total items in cart
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -39,9 +55,11 @@ const Navbar = () => {
             <Link to="/sellers" className="text-gray-700 hover:text-market-primary transition-colors">
               Sellers
             </Link>
-            <Link to="/subscription" className="text-gray-700 hover:text-market-primary transition-colors">
-              Become a Seller
-            </Link>
+            {userType === 'guest' && (
+              <Link to="/subscription" className="text-gray-700 hover:text-market-primary transition-colors">
+                Become a Seller
+              </Link>
+            )}
           </div>
 
           {/* Desktop Right-side buttons */}
@@ -54,12 +72,50 @@ const Navbar = () => {
                 </Button>
               </Link>
             ) : (
-              <Link to={userType === 'seller' ? "/seller/dashboard" : "/account"}>
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  {userType === 'seller' ? 'Dashboard' : 'My Account'}
-                </Button>
-              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    {userType === 'seller' ? 'Seller Account' : 'My Account'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {userType === 'seller' ? (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate('/seller/dashboard')}>
+                        <Store className="mr-2 h-4 w-4" />
+                        Dashboard
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/seller/products')}>
+                        <ShoppingBag className="mr-2 h-4 w-4" />
+                        Products
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/seller/orders')}>
+                        <ShoppingBag className="mr-2 h-4 w-4" />
+                        Orders
+                      </DropdownMenuItem>
+                    </>
+                  ) : (
+                    <>
+                      <DropdownMenuItem onClick={() => navigate('/account')}>
+                        <User className="mr-2 h-4 w-4" />
+                        Profile
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/account')}>
+                        <ShoppingBag className="mr-2 h-4 w-4" />
+                        My Orders
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             <Link to="/cart">
               <Button variant="outline" size="sm" className="flex items-center gap-2 relative">
@@ -111,13 +167,15 @@ const Navbar = () => {
               >
                 Sellers
               </Link>
-              <Link 
-                to="/subscription" 
-                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Become a Seller
-              </Link>
+              {userType === 'guest' && (
+                <Link 
+                  to="/subscription" 
+                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Become a Seller
+                </Link>
+              )}
               {userType === 'guest' ? (
                 <Link 
                   to="/login" 
@@ -127,13 +185,34 @@ const Navbar = () => {
                   Login
                 </Link>
               ) : (
-                <Link 
-                  to={userType === 'seller' ? "/seller/dashboard" : "/account"} 
-                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {userType === 'seller' ? 'Seller Dashboard' : 'My Account'}
-                </Link>
+                <>
+                  {userType === 'seller' ? (
+                    <Link 
+                      to="/seller/dashboard" 
+                      className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Seller Dashboard
+                    </Link>
+                  ) : (
+                    <Link 
+                      to="/account" 
+                      className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      My Account
+                    </Link>
+                  )}
+                  <button
+                    className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-md text-left"
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    Logout
+                  </button>
+                </>
               )}
             </div>
           </div>

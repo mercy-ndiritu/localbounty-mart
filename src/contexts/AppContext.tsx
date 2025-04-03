@@ -1,11 +1,13 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CartItem, Product, SubscriptionTier, Order, OrderStatus } from '../types';
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 interface AppContextType {
   cart: CartItem[];
   userType: 'customer' | 'seller' | 'guest';
   subscriptionTier: SubscriptionTier;
+  isAuthenticated: boolean;
   addToCart: (product: Product, quantity: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
@@ -13,6 +15,8 @@ interface AppContextType {
   cartTotal: number;
   setUserType: (type: 'customer' | 'seller' | 'guest') => void;
   setSubscriptionTier: (tier: SubscriptionTier) => void;
+  login: (email: string, password: string, userType: 'customer' | 'seller') => Promise<boolean>;
+  logout: () => void;
   products?: Product[];
   orders?: Order[];
   addProduct?: (product: Product) => void;
@@ -46,9 +50,36 @@ export const AppProvider = ({
   const [cart, setCart] = useState<CartItem[]>([]);
   const [userType, setUserType] = useState<'customer' | 'seller' | 'guest'>('guest');
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>('basic');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   // Calculate cart total
   const cartTotal = cart.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+
+  // Login function
+  const login = async (email: string, password: string, type: 'customer' | 'seller'): Promise<boolean> => {
+    // In a real application, this would validate credentials against a database
+    // For now, we'll just simulate a successful login
+    setUserType(type);
+    setIsAuthenticated(true);
+    
+    toast({
+      title: "Login successful",
+      description: `Welcome back! You are now logged in as a ${type}.`,
+    });
+    
+    return true;
+  };
+
+  // Logout function
+  const logout = () => {
+    setUserType('guest');
+    setIsAuthenticated(false);
+    
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+  };
 
   // Add product to cart
   const addToCart = (product: Product, quantity: number) => {
@@ -110,6 +141,7 @@ export const AppProvider = ({
     const savedUserType = localStorage.getItem('userType');
     if (savedUserType) {
       setUserType(savedUserType as 'customer' | 'seller' | 'guest');
+      setIsAuthenticated(savedUserType !== 'guest');
     }
 
     const savedSubscriptionTier = localStorage.getItem('subscriptionTier');
@@ -125,6 +157,7 @@ export const AppProvider = ({
 
   useEffect(() => {
     localStorage.setItem('userType', userType);
+    setIsAuthenticated(userType !== 'guest');
   }, [userType]);
 
   useEffect(() => {
@@ -136,6 +169,7 @@ export const AppProvider = ({
       cart,
       userType,
       subscriptionTier,
+      isAuthenticated,
       addToCart,
       removeFromCart,
       updateQuantity,
@@ -143,6 +177,8 @@ export const AppProvider = ({
       cartTotal,
       setUserType,
       setSubscriptionTier,
+      login,
+      logout,
       products,
       orders,
       addProduct,

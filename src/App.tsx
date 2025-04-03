@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useState } from "react";
 
 import { AppProvider } from "@/contexts/AppContext";
@@ -28,9 +28,28 @@ import MarketingAutomationPage from "./pages/MarketingAutomationPage";
 import ShippingManagementPage from "./pages/ShippingManagementPage";
 import CustomerSupportPage from "./pages/CustomerSupportPage";
 import NotFound from "./pages/NotFound";
+import LoginPage from "./pages/LoginPage";
+import ShopperDashboardPage from "./pages/ShopperDashboardPage";
 import { Product, Order, OrderStatus } from "./types";
 
 const queryClient = new QueryClient();
+
+// Protected route component
+const ProtectedRoute = ({ children, userType, requiredType }: { 
+  children: JSX.Element, 
+  userType: 'customer' | 'seller' | 'guest',
+  requiredType: 'customer' | 'seller'
+}) => {
+  if (userType === 'guest') {
+    return <Navigate to="/login" replace />;
+  }
+  
+  if (userType !== requiredType) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return children;
+};
 
 // Using the updated AppProvider that now accepts our database props
 const App = () => {
@@ -254,15 +273,91 @@ const App = () => {
                   <Route path="/checkout" element={<CheckoutPage />} />
                   <Route path="/subscription" element={<SubscriptionPage />} />
                   <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
-                  <Route path="/seller/dashboard" element={<SellerDashboardPage />} />
-                  <Route path="/seller/products" element={<ProductManagementPage />} />
-                  <Route path="/seller/orders" element={<OrdersManagementPage />} />
-                  <Route path="/seller/analytics" element={<BasicAnalyticsPage />} />
-                  <Route path="/seller/advanced-analytics" element={<AdvancedAnalyticsPage />} />
-                  <Route path="/seller/promotions" element={<PromotionalToolsPage />} />
-                  <Route path="/seller/marketing-automation" element={<MarketingAutomationPage />} />
-                  <Route path="/seller/shipping" element={<ShippingManagementPage />} />
-                  <Route path="/seller/customer-support" element={<CustomerSupportPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  
+                  {/* Shopper (Customer) Routes */}
+                  <Route 
+                    path="/account" 
+                    element={
+                      <ProtectedRoute userType='customer' requiredType='customer'>
+                        <ShopperDashboardPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  
+                  {/* Seller Routes */}
+                  <Route 
+                    path="/seller/dashboard" 
+                    element={
+                      <ProtectedRoute userType='seller' requiredType='seller'>
+                        <SellerDashboardPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/seller/products" 
+                    element={
+                      <ProtectedRoute userType='seller' requiredType='seller'>
+                        <ProductManagementPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/seller/orders" 
+                    element={
+                      <ProtectedRoute userType='seller' requiredType='seller'>
+                        <OrdersManagementPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/seller/analytics" 
+                    element={
+                      <ProtectedRoute userType='seller' requiredType='seller'>
+                        <BasicAnalyticsPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/seller/advanced-analytics" 
+                    element={
+                      <ProtectedRoute userType='seller' requiredType='seller'>
+                        <AdvancedAnalyticsPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/seller/promotions" 
+                    element={
+                      <ProtectedRoute userType='seller' requiredType='seller'>
+                        <PromotionalToolsPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/seller/marketing-automation" 
+                    element={
+                      <ProtectedRoute userType='seller' requiredType='seller'>
+                        <MarketingAutomationPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/seller/shipping" 
+                    element={
+                      <ProtectedRoute userType='seller' requiredType='seller'>
+                        <ShippingManagementPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/seller/customer-support" 
+                    element={
+                      <ProtectedRoute userType='seller' requiredType='seller'>
+                        <CustomerSupportPage />
+                      </ProtectedRoute>
+                    } 
+                  />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </main>
