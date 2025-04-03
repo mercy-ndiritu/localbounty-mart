@@ -5,20 +5,21 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ProductCard from '@/components/ProductCard';
 import CategoryFilter from '@/components/CategoryFilter';
-import { PRODUCTS } from '@/data/mockData';
 import { ProductCategory, DeliveryOption } from '@/types';
 import { Search } from 'lucide-react';
+import { useAppContext } from '@/contexts/AppContext';
 
 const ProductsPage = () => {
+  const { products = [] } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'all'>('all');
   const [deliveryFilter, setDeliveryFilter] = useState<DeliveryOption | 'all'>('all');
   const [sortBy, setSortBy] = useState('featured');
-  const [filteredProducts, setFilteredProducts] = useState(PRODUCTS);
+  const [filteredProducts, setFilteredProducts] = useState(products);
 
   // Apply filters and sorting
   useEffect(() => {
-    let result = [...PRODUCTS];
+    let result = [...products];
     
     // Filter by search query
     if (searchQuery) {
@@ -59,7 +60,7 @@ const ProductsPage = () => {
     }
     
     setFilteredProducts(result);
-  }, [searchQuery, selectedCategory, deliveryFilter, sortBy]);
+  }, [searchQuery, selectedCategory, deliveryFilter, sortBy, products]);
 
   return (
     <div className="container mx-auto px-4 py-8">

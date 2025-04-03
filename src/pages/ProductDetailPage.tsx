@@ -13,19 +13,19 @@ import {
   Plus, 
   ShoppingCart 
 } from 'lucide-react';
-import { PRODUCTS, SELLERS, getDeliveryLabel, getCategoryLabel } from '@/data/mockData';
+import { SELLERS, getDeliveryLabel, getCategoryLabel } from '@/data/mockData';
 import { useAppContext } from '@/contexts/AppContext';
 import { useToast } from '@/components/ui/use-toast';
 
 const ProductDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { addToCart } = useAppContext();
+  const { addToCart, products = [] } = useAppContext();
   const { toast } = useToast();
   
   const [quantity, setQuantity] = useState(1);
   
-  const product = PRODUCTS.find(p => p.id === id);
+  const product = products.find(p => p.id === id);
   
   if (!product) {
     return (
@@ -75,8 +75,8 @@ const ProductDetailPage = () => {
         </nav>
       </div>
       
+      {/* Product Image */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        {/* Product Image */}
         <div className="bg-white rounded-lg overflow-hidden shadow-md">
           <img 
             src={product.image} 
