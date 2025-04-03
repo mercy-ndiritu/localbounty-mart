@@ -14,12 +14,15 @@ import ProductsPage from "./pages/ProductsPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import SellersPage from "./pages/SellersPage";
 import CartPage from "./pages/CartPage";
+import CheckoutPage from "./pages/CheckoutPage";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import SubscriptionSuccessPage from "./pages/SubscriptionSuccessPage";
 import SellerDashboardPage from "./pages/SellerDashboardPage";
 import ProductManagementPage from "./pages/ProductManagementPage";
 import BasicAnalyticsPage from "./pages/BasicAnalyticsPage";
+import AdvancedAnalyticsPage from "./pages/AdvancedAnalyticsPage";
 import PromotionalToolsPage from "./pages/PromotionalToolsPage";
+import MarketingAutomationPage from "./pages/MarketingAutomationPage";
 import ShippingManagementPage from "./pages/ShippingManagementPage";
 import CustomerSupportPage from "./pages/CustomerSupportPage";
 import NotFound from "./pages/NotFound";
@@ -42,12 +45,15 @@ const App = () => (
                 <Route path="/products/:id" element={<ProductDetailPage />} />
                 <Route path="/sellers" element={<SellersPage />} />
                 <Route path="/cart" element={<CartPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
                 <Route path="/subscription" element={<SubscriptionPage />} />
                 <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
                 <Route path="/seller/dashboard" element={<SellerDashboardPage />} />
                 <Route path="/seller/products" element={<ProductManagementPage />} />
                 <Route path="/seller/analytics" element={<BasicAnalyticsPage />} />
+                <Route path="/seller/advanced-analytics" element={<AdvancedAnalyticsPage />} />
                 <Route path="/seller/promotions" element={<PromotionalToolsPage />} />
+                <Route path="/seller/marketing-automation" element={<MarketingAutomationPage />} />
                 <Route path="/seller/shipping" element={<ShippingManagementPage />} />
                 <Route path="/seller/customer-support" element={<CustomerSupportPage />} />
                 <Route path="*" element={<NotFound />} />

@@ -52,7 +52,7 @@ const SellerDashboardPage = () => {
       title: "Advanced Analytics",
       description: "Get detailed insights into your sales",
       icon: <LineChart className="h-5 w-5" />,
-      link: "/advanced-analytics",
+      link: "/seller/advanced-analytics",
       available: subscriptionTier === 'premium',
       comingSoon: subscriptionTier === 'basic' || subscriptionTier === 'standard'
     },
@@ -60,7 +60,7 @@ const SellerDashboardPage = () => {
       title: "Marketing Automation",
       description: "Automate your marketing campaigns",
       icon: <Megaphone className="h-5 w-5" />,
-      link: "/marketing-automation",
+      link: "/seller/marketing-automation",
       available: subscriptionTier === 'premium',
       comingSoon: subscriptionTier === 'basic' || subscriptionTier === 'standard'
     },

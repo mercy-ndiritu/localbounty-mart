@@ -30,15 +30,8 @@ const CartPage = () => {
       return;
     }
     
-    // In a real application, navigate to checkout page
-    toast({
-      title: "Checkout initiated",
-      description: "This is a demo. In a real app, you would proceed to payment.",
-    });
-    
-    // For demo purposes, we'll clear the cart
-    clearCart();
-    navigate('/');
+    // Navigate to checkout page
+    navigate('/checkout');
   };
 
   if (cart.length === 0) {
