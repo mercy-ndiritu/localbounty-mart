@@ -7,22 +7,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAppContext } from '@/contexts/AppContext';
 import { CreditCard, Phone, Truck, User, Home, ChevronsRight } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { KenyanCounty } from '@/types';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
-  const { cart, cartTotal, clearCart } = useAppContext();
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const { cart, cartTotal, clearCart, addOrder } = useAppContext();
+  const [paymentMethod, setPaymentMethod] = useState('mpesa');
   const [isProcessing, setIsProcessing] = useState(false);
   const [shippingInfo, setShippingInfo] = useState({
     name: '',
     address: '',
     city: '',
-    state: '',
+    county: '' as KenyanCounty,
     zip: '',
-    country: '',
     email: '',
     phone: '',
   });
@@ -34,9 +35,21 @@ const CheckoutPage = () => {
     cvc: '',
   });
 
+  // Kenyan counties list
+  const counties: KenyanCounty[] = ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Other'];
+
+  // Standard shipping rate in KES
+  const shippingRate = 500;
+  // VAT rate in Kenya is 16%
+  const taxRate = 0.16;
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setShippingInfo(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleCountyChange = (value: KenyanCounty) => {
+    setShippingInfo(prev => ({ ...prev, county: value }));
   };
 
   const handleCardInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,7 +60,7 @@ const CheckoutPage = () => {
   const handleShippingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Validate shipping information
-    const requiredFields = ['name', 'address', 'city', 'state', 'zip', 'country', 'email', 'phone'];
+    const requiredFields = ['name', 'address', 'city', 'county', 'zip', 'email', 'phone'];
     const missingFields = requiredFields.filter(field => !shippingInfo[field as keyof typeof shippingInfo]);
     
     if (missingFields.length > 0) {
@@ -64,9 +77,9 @@ const CheckoutPage = () => {
   };
 
   const validateMpesaPhone = (phone: string) => {
-    // Simple validation for M-Pesa phone numbers (Kenya format)
-    const kenyanPhoneRegex = /^(?:254|\+254|0)?(7[0-9]{8})$/;
-    return kenyanPhoneRegex.test(phone);
+    // Kenyan phone number validation (supports formats like 07xx, 254xxx, +254xxx)
+    const kenyaPhoneRegex = /^(?:254|\+254|0)?(7[0-9]{8})$/;
+    return kenyaPhoneRegex.test(phone);
   };
 
   const validateCardDetails = () => {
@@ -132,7 +145,7 @@ const CheckoutPage = () => {
         
         // Simulate successful payment after delay
         setTimeout(() => {
-          completeOrder();
+          completeOrder('mpesa');
         }, 3000);
       }, 2000);
       
@@ -144,13 +157,54 @@ const CheckoutPage = () => {
       
       // Simulate card processing
       setTimeout(() => {
-        completeOrder();
+        completeOrder('card');
       }, 2000);
     }
   };
 
-  const completeOrder = () => {
-    // Simulate successful order completion
+  const completeOrder = (method: 'mpesa' | 'card') => {
+    // Calculate totals
+    const subtotal = cartTotal;
+    const tax = subtotal * taxRate;
+    const total = subtotal + tax + shippingRate;
+
+    // Create a new order
+    const newOrder = {
+      id: `ORD-${Math.floor(Math.random() * 100000)}`,
+      customerId: `CUST-${Math.floor(Math.random() * 100000)}`,
+      customerName: shippingInfo.name,
+      customerEmail: shippingInfo.email,
+      customerPhone: shippingInfo.phone,
+      shippingAddress: {
+        address: shippingInfo.address,
+        city: shippingInfo.city,
+        county: shippingInfo.county,
+        postalCode: shippingInfo.zip
+      },
+      items: cart.map(item => ({
+        productId: item.product.id,
+        productName: item.product.name,
+        quantity: item.quantity,
+        price: item.product.price
+      })),
+      totalAmount: total,
+      status: 'pending' as const,
+      payment: {
+        method: method,
+        status: 'completed' as const,
+        transactionId: `TXN-${Math.floor(Math.random() * 100000)}`
+      },
+      sellerId: cart[0].product.sellerId, // Assuming all items are from the same seller
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // Add the order to the context
+    if (addOrder) {
+      addOrder(newOrder);
+    }
+
+    // Clear the cart
     clearCart();
     setIsProcessing(false);
     
@@ -172,6 +226,11 @@ const CheckoutPage = () => {
       </div>
     );
   }
+
+  // Calculate totals in KES
+  const subtotal = cartTotal;
+  const tax = subtotal * taxRate;
+  const total = subtotal + tax + shippingRate;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -239,14 +298,17 @@ const CheckoutPage = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="state">State/Province</Label>
-                    <Input 
-                      id="state" 
-                      name="state" 
-                      value={shippingInfo.state} 
-                      onChange={handleInputChange}
-                      placeholder="Nairobi" 
-                    />
+                    <Label htmlFor="county">County</Label>
+                    <Select onValueChange={handleCountyChange} value={shippingInfo.county}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select County" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {counties.map((county) => (
+                          <SelectItem key={county} value={county}>{county}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="zip">Postal Code</Label>
@@ -260,27 +322,16 @@ const CheckoutPage = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="country">Country</Label>
-                    <Input 
-                      id="country" 
-                      name="country" 
-                      value={shippingInfo.country} 
-                      onChange={handleInputChange}
-                      placeholder="Kenya" 
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input 
-                      id="phone" 
-                      name="phone" 
-                      value={shippingInfo.phone} 
-                      onChange={handleInputChange}
-                      placeholder="+254 700 000000" 
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input 
+                    id="phone" 
+                    name="phone" 
+                    value={shippingInfo.phone} 
+                    onChange={handleInputChange}
+                    placeholder="0712 345678" 
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Enter your phone number (e.g. 0712345678)</p>
                 </div>
               </form>
             </CardContent>
@@ -294,21 +345,41 @@ const CheckoutPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="card" onValueChange={setPaymentMethod} className="w-full">
+              <Tabs defaultValue="mpesa" onValueChange={setPaymentMethod} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="card">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4" />
-                      <span>Credit/Debit Card</span>
-                    </div>
-                  </TabsTrigger>
                   <TabsTrigger value="mpesa">
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4" />
                       <span>M-Pesa</span>
                     </div>
                   </TabsTrigger>
+                  <TabsTrigger value="card">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4" />
+                      <span>Credit/Debit Card</span>
+                    </div>
+                  </TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="mpesa" className="mt-4">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="mpesa-phone">M-Pesa Phone Number</Label>
+                      <Input 
+                        id="mpesa-phone" 
+                        value={mpesaPhone}
+                        onChange={(e) => setMpesaPhone(e.target.value)}
+                        placeholder="e.g. 0712345678" 
+                      />
+                      <p className="text-sm text-gray-500 mt-1">Enter your M-Pesa registered phone number</p>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-md">
+                      <p className="text-sm text-green-700">
+                        You will receive a push notification on your phone to complete the payment.
+                      </p>
+                    </div>
+                  </div>
+                </TabsContent>
 
                 <TabsContent value="card" className="mt-4 space-y-4">
                   <div>
@@ -351,26 +422,6 @@ const CheckoutPage = () => {
                         onChange={handleCardInputChange}
                         placeholder="123" 
                       />
-                    </div>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="mpesa" className="mt-4">
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="mpesa-phone">M-Pesa Phone Number</Label>
-                      <Input 
-                        id="mpesa-phone" 
-                        value={mpesaPhone}
-                        onChange={(e) => setMpesaPhone(e.target.value)}
-                        placeholder="e.g. 254712345678" 
-                      />
-                      <p className="text-sm text-gray-500 mt-1">Enter your M-Pesa registered phone number starting with country code (254)</p>
-                    </div>
-                    <div className="bg-yellow-50 p-4 rounded-md">
-                      <p className="text-sm text-amber-700">
-                        You will receive a push notification on your phone to complete the payment.
-                      </p>
                     </div>
                   </div>
                 </TabsContent>
@@ -423,7 +474,7 @@ const CheckoutPage = () => {
                       </div>
                     </div>
                     <p className="text-sm font-medium">
-                      ${(item.product.price * item.quantity).toFixed(2)}
+                      KES {(item.product.price * item.quantity).toLocaleString()}
                     </p>
                   </div>
                 ))}
@@ -432,19 +483,19 @@ const CheckoutPage = () => {
               <div className="border-t pt-3 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal</span>
-                  <span>${cartTotal.toFixed(2)}</span>
+                  <span>KES {subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Shipping</span>
-                  <span>$5.00</span>
+                  <span>KES {shippingRate.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>Tax</span>
-                  <span>${(cartTotal * 0.16).toFixed(2)}</span>
+                  <span>VAT (16%)</span>
+                  <span>KES {tax.toLocaleString()}</span>
                 </div>
                 <div className="border-t pt-3 flex justify-between font-bold">
                   <span>Total</span>
-                  <span>${(cartTotal + 5 + cartTotal * 0.16).toFixed(2)}</span>
+                  <span>KES {total.toLocaleString()}</span>
                 </div>
               </div>
             </CardContent>

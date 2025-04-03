@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { ProductCategory, DeliveryOption } from '@/types';
+import { Product, ProductCategory, DeliveryOption } from '@/types';
 import { toast } from "@/components/ui/use-toast";
 
 import {
@@ -25,6 +26,7 @@ import {
 } from '@/components/ui/select';
 
 interface ProductFormProps {
+  product?: Product;
   onSubmit: (data: ProductFormValues) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
@@ -43,17 +45,17 @@ const formSchema = z.object({
 
 export type ProductFormValues = z.infer<typeof formSchema>;
 
-const ProductForm = ({ onSubmit, onCancel, isSubmitting = false }: ProductFormProps) => {
+const ProductForm = ({ product, onSubmit, onCancel, isSubmitting = false }: ProductFormProps) => {
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
-      description: '',
-      price: 0,
-      image: '/placeholder.svg',
-      category: 'farm',
-      stock: 0,
-      deliveryOption: 'both',
+      name: product?.name || '',
+      description: product?.description || '',
+      price: product?.price || 0,
+      image: product?.image || '/placeholder.svg',
+      category: product?.category || 'farm',
+      stock: product?.stock || 0,
+      deliveryOption: product?.deliveryOption || 'both',
     },
   });
 
@@ -101,7 +103,7 @@ const ProductForm = ({ onSubmit, onCancel, isSubmitting = false }: ProductFormPr
             name="price"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Price ($)</FormLabel>
+                <FormLabel>Price (KES)</FormLabel>
                 <FormControl>
                   <Input type="number" step="0.01" {...field} />
                 </FormControl>
@@ -191,7 +193,7 @@ const ProductForm = ({ onSubmit, onCancel, isSubmitting = false }: ProductFormPr
             disabled={isSubmitting}
             className="bg-market-primary hover:bg-market-dark"
           >
-            {isSubmitting ? 'Saving...' : 'Add Product'}
+            {isSubmitting ? 'Saving...' : product ? 'Update Product' : 'Add Product'}
           </Button>
         </div>
       </form>
