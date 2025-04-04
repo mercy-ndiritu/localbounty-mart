@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -34,7 +33,6 @@ import { Product, Order, OrderStatus } from "./types";
 
 const queryClient = new QueryClient();
 
-// Protected route component
 const ProtectedRoute = ({ children, userType, requiredType }: { 
   children: JSX.Element, 
   userType: 'customer' | 'seller' | 'guest',
@@ -51,9 +49,7 @@ const ProtectedRoute = ({ children, userType, requiredType }: {
   return children;
 };
 
-// Using the updated AppProvider that now accepts our database props
 const App = () => {
-  // Products state
   const [products, setProducts] = useState<Product[]>([
     {
       id: 'p1',
@@ -112,7 +108,6 @@ const App = () => {
     }
   ]);
 
-  // Orders state
   const [orders, setOrders] = useState<Order[]>([
     {
       id: 'ORD-12345',
@@ -220,7 +215,6 @@ const App = () => {
     }
   ]);
 
-  // Product CRUD operations
   const addProduct = (product: Product) => {
     setProducts(prev => [...prev, product]);
   };
@@ -235,7 +229,6 @@ const App = () => {
     setProducts(prev => prev.filter(product => product.id !== productId));
   };
 
-  // Order operations
   const addOrder = (order: Order) => {
     setOrders(prev => [...prev, order]);
   };
@@ -250,7 +243,7 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AppProvider 
-          products={products}
+          initialProducts={products}
           orders={orders}
           addProduct={addProduct}
           updateProduct={updateProduct}
@@ -275,7 +268,6 @@ const App = () => {
                   <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   
-                  {/* Shopper (Customer) Routes */}
                   <Route 
                     path="/account" 
                     element={
@@ -285,7 +277,6 @@ const App = () => {
                     } 
                   />
                   
-                  {/* Seller Routes */}
                   <Route 
                     path="/seller/dashboard" 
                     element={
