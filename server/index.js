@@ -45,7 +45,10 @@ let products = [];
 let nextProductId = 1;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*', // Allow any origin for development
+  credentials: true
+}));
 app.use(bodyParser.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

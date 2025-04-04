@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -43,8 +42,7 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import ProductForm, { ProductFormValues } from '@/components/ProductForm';
 
-// API URL
-const API_URL = 'http://localhost:5000/api';
+const API_URL = '/api';
 
 const ProductManagementPage = () => {
   const navigate = useNavigate();
@@ -60,7 +58,6 @@ const ProductManagementPage = () => {
   const [loading, setLoading] = useState(true);
   const [localProducts, setLocalProducts] = useState<Product[]>([]);
 
-  // Use subscription tier from context
   const sellerSubscription = subscriptionTier;
   
   const getProductLimit = (tier: SubscriptionTier) => {
@@ -72,7 +69,6 @@ const ProductManagementPage = () => {
     }
   };
 
-  // Fetch products from the API
   const fetchProducts = async () => {
     setLoading(true);
     try {
@@ -83,7 +79,6 @@ const ProductManagementPage = () => {
       const data = await response.json();
       setLocalProducts(data);
       
-      // Also update the context if needed
       if (data.length > 0 && addProduct) {
         data.forEach((product: Product) => {
           addProduct(product);
@@ -96,14 +91,12 @@ const ProductManagementPage = () => {
         description: "Failed to load products. Using local data instead.",
         variant: "destructive",
       });
-      // Fallback to context products
       setLocalProducts(products || []);
     } finally {
       setLoading(false);
     }
   };
 
-  // Load products on component mount
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -116,7 +109,6 @@ const ProductManagementPage = () => {
     setSubmitting(true);
     
     try {
-      // Prepare form data for API
       const formDataObj = new FormData();
       formDataObj.append('productData', JSON.stringify({
         name: formData.name,
@@ -125,21 +117,16 @@ const ProductManagementPage = () => {
         category: formData.category,
         stock: formData.stock,
         deliveryOption: formData.deliveryOption,
-        sellerId: 's5', // In a real app, this would be the current user's ID
+        sellerId: 's5',
       }));
       
-      // If the image is a data URL (from file input), we need to convert it to a file
       if (formData.image && formData.image.startsWith('blob:')) {
-        // Fetch the blob
         const response = await fetch(formData.image);
         const blob = await response.blob();
-        
-        // Create a File from the blob
         const file = new File([blob], 'product-image.jpg', { type: 'image/jpeg' });
         formDataObj.append('image', file);
       }
       
-      // Send to API
       const response = await fetch(`${API_URL}/products`, {
         method: 'POST',
         body: formDataObj,
@@ -151,21 +138,17 @@ const ProductManagementPage = () => {
       
       const newProduct = await response.json();
       
-      // Update local state
       setLocalProducts(prev => [...prev, newProduct]);
       
-      // Update context
       if (addProduct) {
         addProduct(newProduct);
       }
       
-      // Show success message
       toast({
         title: "Product added",
         description: `${formData.name} has been added to your product catalog.`,
       });
       
-      // Close the dialog
       setShowProductDialog(false);
     } catch (error) {
       console.error('Error adding product:', error);
@@ -190,7 +173,6 @@ const ProductManagementPage = () => {
     setSubmitting(true);
     
     try {
-      // Prepare form data for API
       const formDataObj = new FormData();
       formDataObj.append('productData', JSON.stringify({
         name: formData.name,
@@ -201,18 +183,13 @@ const ProductManagementPage = () => {
         deliveryOption: formData.deliveryOption,
       }));
       
-      // If the image is a data URL (from file input), we need to convert it to a file
       if (formData.image && formData.image.startsWith('blob:')) {
-        // Fetch the blob
         const response = await fetch(formData.image);
         const blob = await response.blob();
-        
-        // Create a File from the blob
         const file = new File([blob], 'product-image.jpg', { type: 'image/jpeg' });
         formDataObj.append('image', file);
       }
       
-      // Send to API
       const response = await fetch(`${API_URL}/products/${editingProduct.id}`, {
         method: 'PUT',
         body: formDataObj,
@@ -224,23 +201,19 @@ const ProductManagementPage = () => {
       
       const updatedProduct = await response.json();
       
-      // Update local state
       setLocalProducts(prev => 
         prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
       );
       
-      // Update context
       if (updateProduct) {
         updateProduct(updatedProduct);
       }
       
-      // Show success message
       toast({
         title: "Product updated",
         description: `${formData.name} has been updated.`,
       });
       
-      // Close the dialog
       setShowProductDialog(false);
       setEditingProduct(null);
     } catch (error) {
@@ -264,7 +237,6 @@ const ProductManagementPage = () => {
     if (!deletingProduct) return;
     
     try {
-      // Send to API
       const response = await fetch(`${API_URL}/products/${deletingProduct.id}`, {
         method: 'DELETE',
       });
@@ -273,21 +245,17 @@ const ProductManagementPage = () => {
         throw new Error('Failed to delete product');
       }
       
-      // Update local state
       setLocalProducts(prev => prev.filter(p => p.id !== deletingProduct.id));
       
-      // Update context
       if (deleteProduct) {
         deleteProduct(deletingProduct.id);
       }
       
-      // Show success message
       toast({
         title: "Product deleted",
         description: `${deletingProduct.name} has been removed from your catalog.`,
       });
       
-      // Close the dialog
       setShowDeleteDialog(false);
       setDeletingProduct(null);
     } catch (error) {
@@ -301,17 +269,14 @@ const ProductManagementPage = () => {
   };
 
   const handleViewProduct = (productId: string) => {
-    // Navigate to the product detail page
     navigate(`/products/${productId}`);
   };
 
-  // Filter products based on search query
   const filteredProducts = localProducts?.filter(product => 
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     product.description.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
-  // Sort products if a sort field is selected
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     if (!sortField) return 0;
     
@@ -391,7 +356,6 @@ const ProductManagementPage = () => {
         </Button>
       </div>
 
-      {/* Add/Edit Product Dialog */}
       <Dialog open={showProductDialog} onOpenChange={setShowProductDialog}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -414,7 +378,6 @@ const ProductManagementPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -440,7 +403,6 @@ const ProductManagementPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Product limit info */}
       <Card className="mb-6">
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
@@ -468,7 +430,6 @@ const ProductManagementPage = () => {
         </CardContent>
       </Card>
 
-      {/* Search and filter */}
       <div className="mb-6">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -482,7 +443,6 @@ const ProductManagementPage = () => {
         </div>
       </div>
 
-      {/* Product table */}
       <Card>
         <CardContent className="p-0 overflow-auto">
           {loading ? (

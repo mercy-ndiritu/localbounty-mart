@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { CartItem, Product, SubscriptionTier, Order, OrderStatus } from '../types';
 import { toast } from "@/components/ui/use-toast";
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = '/api';
 
 interface AppContextType {
   cart: CartItem[];
