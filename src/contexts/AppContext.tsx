@@ -1,7 +1,8 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CartItem, Product, SubscriptionTier, Order, OrderStatus } from '../types';
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
+
+const API_URL = 'http://localhost:5000/api';
 
 interface AppContextType {
   cart: CartItem[];
@@ -17,11 +18,12 @@ interface AppContextType {
   setSubscriptionTier: (tier: SubscriptionTier) => void;
   login: (email: string, password: string, userType: 'customer' | 'seller') => Promise<boolean>;
   logout: () => void;
-  products?: Product[];
+  products: Product[];
+  fetchProducts: () => Promise<void>;
   orders?: Order[];
-  addProduct?: (product: Product) => void;
-  updateProduct?: (updatedProduct: Product) => void;
-  deleteProduct?: (productId: string) => void;
+  addProduct: (product: Product) => void;
+  updateProduct: (updatedProduct: Product) => void;
+  deleteProduct: (productId: string) => void;
   addOrder?: (order: Order) => void;
   updateOrderStatus?: (orderId: string, status: OrderStatus) => void;
 }
@@ -30,20 +32,14 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ 
   children,
-  products,
+  initialProducts,
   orders,
-  addProduct,
-  updateProduct,
-  deleteProduct,
   addOrder,
   updateOrderStatus
 }: { 
   children: ReactNode;
-  products?: Product[];
+  initialProducts?: Product[];
   orders?: Order[];
-  addProduct?: (product: Product) => void;
-  updateProduct?: (updatedProduct: Product) => void;
-  deleteProduct?: (productId: string) => void;
   addOrder?: (order: Order) => void;
   updateOrderStatus?: (orderId: string, status: OrderStatus) => void;
 }) => {
@@ -51,14 +47,30 @@ export const AppProvider = ({
   const [userType, setUserType] = useState<'customer' | 'seller' | 'guest'>('guest');
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>('basic');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [products, setProducts] = useState<Product[]>(initialProducts || []);
 
-  // Calculate cart total
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch(`${API_URL}/products`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      const data = await response.json();
+      setProducts(data);
+      return data;
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      return products;
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
   const cartTotal = cart.reduce((total, item) => total + (item.product.price * item.quantity), 0);
 
-  // Login function
   const login = async (email: string, password: string, type: 'customer' | 'seller'): Promise<boolean> => {
-    // In a real application, this would validate credentials against a database
-    // For now, we'll just simulate a successful login
     setUserType(type);
     setIsAuthenticated(true);
     
@@ -70,7 +82,6 @@ export const AppProvider = ({
     return true;
   };
 
-  // Logout function
   const logout = () => {
     setUserType('guest');
     setIsAuthenticated(false);
@@ -81,7 +92,6 @@ export const AppProvider = ({
     });
   };
 
-  // Add product to cart
   const addToCart = (product: Product, quantity: number) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.product.id === product.id);
@@ -103,12 +113,24 @@ export const AppProvider = ({
     });
   };
 
-  // Remove product from cart
+  const addProduct = (product: Product) => {
+    setProducts(prev => [...prev, product]);
+  };
+
+  const updateProduct = (updatedProduct: Product) => {
+    setProducts(prev => 
+      prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+    );
+  };
+
+  const deleteProduct = (productId: string) => {
+    setProducts(prev => prev.filter(p => p.id !== productId));
+  };
+
   const removeFromCart = (productId: string) => {
     setCart(prevCart => prevCart.filter(item => item.product.id !== productId));
   };
 
-  // Update quantity of product in cart
   const updateQuantity = (productId: string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
@@ -122,12 +144,10 @@ export const AppProvider = ({
     );
   };
 
-  // Clear the cart
   const clearCart = () => {
     setCart([]);
   };
 
-  // Load from localStorage on component mount
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
@@ -150,7 +170,6 @@ export const AppProvider = ({
     }
   }, []);
 
-  // Save to localStorage on state change
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
@@ -180,6 +199,7 @@ export const AppProvider = ({
       login,
       logout,
       products,
+      fetchProducts,
       orders,
       addProduct,
       updateProduct,

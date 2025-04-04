@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -48,6 +48,7 @@ export type ProductFormValues = z.infer<typeof formSchema>;
 
 const ProductForm = ({ product, onSubmit, onCancel, isSubmitting = false }: ProductFormProps) => {
   const [previewImage, setPreviewImage] = useState<string | null>(product?.image || null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
@@ -98,6 +99,16 @@ const ProductForm = ({ product, onSubmit, onCancel, isSubmitting = false }: Prod
   const clearImage = () => {
     setPreviewImage(null);
     form.setValue('image', '/placeholder.svg');
+    // Reset the file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
   const handleSubmit = form.handleSubmit((data) => {
@@ -147,7 +158,10 @@ const ProductForm = ({ product, onSubmit, onCancel, isSubmitting = false }: Prod
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-48 w-48 border-2 border-dashed border-gray-300 rounded-md">
+                  <div 
+                    className="flex flex-col items-center justify-center h-48 w-48 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
+                    onClick={triggerFileInput}
+                  >
                     <Upload className="h-8 w-8 text-gray-400 mb-2" />
                     <p className="text-sm text-gray-500">Click to upload</p>
                   </div>
@@ -157,13 +171,23 @@ const ProductForm = ({ product, onSubmit, onCancel, isSubmitting = false }: Prod
                   <Input 
                     type="file" 
                     accept="image/*"
-                    className={previewImage ? "hidden" : ""}
+                    className="hidden" // Hide the actual input
                     onChange={handleImageUpload} 
                     onBlur={field.onBlur}
                     name={field.name}
-                    ref={field.ref}
+                    ref={fileInputRef}
                   />
                 </FormControl>
+                {!previewImage && (
+                  <Button 
+                    type="button" 
+                    variant="secondary" 
+                    onClick={triggerFileInput}
+                    className="mt-2"
+                  >
+                    Select Image
+                  </Button>
+                )}
                 <FormMessage />
               </div>
             </FormItem>

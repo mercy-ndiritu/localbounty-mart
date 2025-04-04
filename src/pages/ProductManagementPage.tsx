@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -42,6 +43,9 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import ProductForm, { ProductFormValues } from '@/components/ProductForm';
 
+// API URL
+const API_URL = 'http://localhost:5000/api';
+
 const ProductManagementPage = () => {
   const navigate = useNavigate();
   const { userType, subscriptionTier, products, addProduct, updateProduct, deleteProduct } = useAppContext();
@@ -54,6 +58,7 @@ const ProductManagementPage = () => {
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [localProducts, setLocalProducts] = useState<Product[]>([]);
 
   // Use subscription tier from context
   const sellerSubscription = subscriptionTier;
@@ -67,41 +72,89 @@ const ProductManagementPage = () => {
     }
   };
 
-  // Simulate loading of products
-  useEffect(() => {
-    // In a real app, this would fetch from a database
-    const timer = setTimeout(() => {
+  // Fetch products from the API
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/products`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      const data = await response.json();
+      setLocalProducts(data);
+      
+      // Also update the context if needed
+      if (data.length > 0 && addProduct) {
+        data.forEach((product: Product) => {
+          addProduct(product);
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load products. Using local data instead.",
+        variant: "destructive",
+      });
+      // Fallback to context products
+      setLocalProducts(products || []);
+    } finally {
       setLoading(false);
-    }, 1500);
-    
-    return () => clearTimeout(timer);
+    }
+  };
+
+  // Load products on component mount
+  useEffect(() => {
+    fetchProducts();
   }, []);
 
   const productLimit = getProductLimit(sellerSubscription);
-  const productCount = products?.length || 0;
+  const productCount = localProducts?.length || 0;
   const canAddMoreProducts = typeof productLimit === 'string' || productCount < productLimit;
 
-  const handleAddProduct = (formData: ProductFormValues) => {
+  const handleAddProduct = async (formData: ProductFormValues) => {
     setSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      // Create a new product with the form data
-      const newProduct: Product = {
-        id: `p${Math.floor(Math.random() * 1000000)}`, // Use a larger random range to avoid collisions
+    try {
+      // Prepare form data for API
+      const formDataObj = new FormData();
+      formDataObj.append('productData', JSON.stringify({
         name: formData.name,
         description: formData.description,
         price: formData.price,
-        image: formData.image, // This now comes from the image upload
         category: formData.category,
-        sellerId: 's5', // In a real app, this would be the current user's ID
         stock: formData.stock,
         deliveryOption: formData.deliveryOption,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+        sellerId: 's5', // In a real app, this would be the current user's ID
+      }));
       
-      // Add the new product
+      // If the image is a data URL (from file input), we need to convert it to a file
+      if (formData.image && formData.image.startsWith('blob:')) {
+        // Fetch the blob
+        const response = await fetch(formData.image);
+        const blob = await response.blob();
+        
+        // Create a File from the blob
+        const file = new File([blob], 'product-image.jpg', { type: 'image/jpeg' });
+        formDataObj.append('image', file);
+      }
+      
+      // Send to API
+      const response = await fetch(`${API_URL}/products`, {
+        method: 'POST',
+        body: formDataObj,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to add product');
+      }
+      
+      const newProduct = await response.json();
+      
+      // Update local state
+      setLocalProducts(prev => [...prev, newProduct]);
+      
+      // Update context
       if (addProduct) {
         addProduct(newProduct);
       }
@@ -114,8 +167,16 @@ const ProductManagementPage = () => {
       
       // Close the dialog
       setShowProductDialog(false);
+    } catch (error) {
+      console.error('Error adding product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add product. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setSubmitting(false);
-    }, 1000);
+    }
   };
 
   const handleEditProduct = (product: Product) => {
@@ -123,26 +184,52 @@ const ProductManagementPage = () => {
     setShowProductDialog(true);
   };
 
-  const handleUpdateProduct = (formData: ProductFormValues) => {
+  const handleUpdateProduct = async (formData: ProductFormValues) => {
     if (!editingProduct) return;
     
     setSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      const updatedProduct: Product = {
-        ...editingProduct,
+    try {
+      // Prepare form data for API
+      const formDataObj = new FormData();
+      formDataObj.append('productData', JSON.stringify({
         name: formData.name,
         description: formData.description,
         price: formData.price,
-        image: formData.image, // Use the uploaded image or keep existing
         category: formData.category,
         stock: formData.stock,
         deliveryOption: formData.deliveryOption,
-        updatedAt: new Date().toISOString()
-      };
+      }));
       
-      // Update the product
+      // If the image is a data URL (from file input), we need to convert it to a file
+      if (formData.image && formData.image.startsWith('blob:')) {
+        // Fetch the blob
+        const response = await fetch(formData.image);
+        const blob = await response.blob();
+        
+        // Create a File from the blob
+        const file = new File([blob], 'product-image.jpg', { type: 'image/jpeg' });
+        formDataObj.append('image', file);
+      }
+      
+      // Send to API
+      const response = await fetch(`${API_URL}/products/${editingProduct.id}`, {
+        method: 'PUT',
+        body: formDataObj,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update product');
+      }
+      
+      const updatedProduct = await response.json();
+      
+      // Update local state
+      setLocalProducts(prev => 
+        prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+      );
+      
+      // Update context
       if (updateProduct) {
         updateProduct(updatedProduct);
       }
@@ -156,8 +243,16 @@ const ProductManagementPage = () => {
       // Close the dialog
       setShowProductDialog(false);
       setEditingProduct(null);
+    } catch (error) {
+      console.error('Error updating product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update product. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setSubmitting(false);
-    }, 1000);
+    }
   };
 
   const confirmDelete = (product: Product) => {
@@ -165,12 +260,23 @@ const ProductManagementPage = () => {
     setShowDeleteDialog(true);
   };
 
-  const handleDeleteProduct = () => {
+  const handleDeleteProduct = async () => {
     if (!deletingProduct) return;
     
-    // Simulate API call
-    setTimeout(() => {
-      // Delete the product
+    try {
+      // Send to API
+      const response = await fetch(`${API_URL}/products/${deletingProduct.id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete product');
+      }
+      
+      // Update local state
+      setLocalProducts(prev => prev.filter(p => p.id !== deletingProduct.id));
+      
+      // Update context
       if (deleteProduct) {
         deleteProduct(deletingProduct.id);
       }
@@ -184,7 +290,14 @@ const ProductManagementPage = () => {
       // Close the dialog
       setShowDeleteDialog(false);
       setDeletingProduct(null);
-    }, 500);
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete product. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleViewProduct = (productId: string) => {
@@ -193,7 +306,7 @@ const ProductManagementPage = () => {
   };
 
   // Filter products based on search query
-  const filteredProducts = products?.filter(product => 
+  const filteredProducts = localProducts?.filter(product => 
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     product.description.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
