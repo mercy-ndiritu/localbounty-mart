@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CartItem, Product, SubscriptionTier, Order, OrderStatus } from '../types';
 import { toast } from "@/components/ui/use-toast";
@@ -34,12 +35,18 @@ export const AppProvider = ({
   children,
   initialProducts,
   orders,
+  addProduct,
+  updateProduct,
+  deleteProduct,
   addOrder,
   updateOrderStatus
 }: { 
   children: ReactNode;
   initialProducts?: Product[];
   orders?: Order[];
+  addProduct: (product: Product) => void;
+  updateProduct: (updatedProduct: Product) => void;
+  deleteProduct: (productId: string) => void;
   addOrder?: (order: Order) => void;
   updateOrderStatus?: (orderId: string, status: OrderStatus) => void;
 }) => {
