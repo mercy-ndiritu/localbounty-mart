@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CartItem, Product, SubscriptionTier, Order, OrderStatus } from '../types';
 import { toast } from "@/components/ui/use-toast";
@@ -35,9 +34,9 @@ export const AppProvider = ({
   children,
   initialProducts,
   orders,
-  addProduct,
-  updateProduct,
-  deleteProduct,
+  addProduct: externalAddProduct,
+  updateProduct: externalUpdateProduct,
+  deleteProduct: externalDeleteProduct,
   addOrder,
   updateOrderStatus
 }: { 
@@ -122,16 +121,19 @@ export const AppProvider = ({
 
   const addProduct = (product: Product) => {
     setProducts(prev => [...prev, product]);
+    externalAddProduct(product);
   };
 
   const updateProduct = (updatedProduct: Product) => {
     setProducts(prev => 
       prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
     );
+    externalUpdateProduct(updatedProduct);
   };
 
   const deleteProduct = (productId: string) => {
     setProducts(prev => prev.filter(p => p.id !== productId));
+    externalDeleteProduct(productId);
   };
 
   const removeFromCart = (productId: string) => {
