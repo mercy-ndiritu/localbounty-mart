@@ -58,15 +58,33 @@ export const AppProvider = ({
   const fetchProducts = async () => {
     try {
       const response = await fetch(`${API_URL}/products`);
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch products');
+        const errorText = await response.text();
+        console.error('Server error:', errorText);
+        throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}`);
       }
+      
       const data = await response.json();
-      setProducts(data);
-      return data;
+      
+      const processedData = data.map((product: Product) => {
+        if (product.image && product.image.startsWith('/uploads')) {
+          return {
+            ...product,
+            image: `${API_URL}${product.image}`
+          };
+        }
+        return product;
+      });
+      
+      setProducts(processedData);
     } catch (error) {
       console.error('Error fetching products:', error);
-      return products;
+      toast({
+        title: "Error loading products",
+        description: "Could not load products from the server.",
+        variant: "destructive",
+      });
     }
   };
 

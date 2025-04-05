@@ -105,12 +105,13 @@ const ProductManagementPage = () => {
   const productCount = localProducts?.length || 0;
   const canAddMoreProducts = typeof productLimit === 'string' || productCount < productLimit;
 
-  const handleAddProduct = async (formData: ProductFormValues) => {
+  const handleAddProduct = async (formData: ProductFormValues, file?: File) => {
     setSubmitting(true);
     
     try {
       const formDataObj = new FormData();
-      formDataObj.append('productData', JSON.stringify({
+      
+      const productData = {
         name: formData.name,
         description: formData.description,
         price: formData.price,
@@ -118,12 +119,11 @@ const ProductManagementPage = () => {
         stock: formData.stock,
         deliveryOption: formData.deliveryOption,
         sellerId: 's5',
-      }));
+      };
       
-      if (formData.image && formData.image.startsWith('blob:')) {
-        const response = await fetch(formData.image);
-        const blob = await response.blob();
-        const file = new File([blob], 'product-image.jpg', { type: 'image/jpeg' });
+      formDataObj.append('productData', JSON.stringify(productData));
+      
+      if (file) {
         formDataObj.append('image', file);
       }
       
@@ -133,7 +133,9 @@ const ProductManagementPage = () => {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to add product');
+        const errorData = await response.text();
+        console.error('Server error:', errorData);
+        throw new Error('Failed to add product: ' + errorData);
       }
       
       const newProduct = await response.json();
@@ -167,26 +169,26 @@ const ProductManagementPage = () => {
     setShowProductDialog(true);
   };
 
-  const handleUpdateProduct = async (formData: ProductFormValues) => {
+  const handleUpdateProduct = async (formData: ProductFormValues, file?: File) => {
     if (!editingProduct) return;
     
     setSubmitting(true);
     
     try {
       const formDataObj = new FormData();
-      formDataObj.append('productData', JSON.stringify({
+      
+      const productData = {
         name: formData.name,
         description: formData.description,
         price: formData.price,
         category: formData.category,
         stock: formData.stock,
         deliveryOption: formData.deliveryOption,
-      }));
+      };
       
-      if (formData.image && formData.image.startsWith('blob:')) {
-        const response = await fetch(formData.image);
-        const blob = await response.blob();
-        const file = new File([blob], 'product-image.jpg', { type: 'image/jpeg' });
+      formDataObj.append('productData', JSON.stringify(productData));
+      
+      if (file) {
         formDataObj.append('image', file);
       }
       
@@ -196,7 +198,9 @@ const ProductManagementPage = () => {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to update product');
+        const errorData = await response.text();
+        console.error('Server error:', errorData);
+        throw new Error('Failed to update product: ' + errorData);
       }
       
       const updatedProduct = await response.json();
@@ -489,9 +493,12 @@ const ProductManagementPage = () => {
                     <TableRow key={product.id}>
                       <TableCell>
                         <img 
-                          src={product.image} 
+                          src={product.image && product.image.startsWith('/uploads') ? `${API_URL}${product.image}` : product.image} 
                           alt={product.name} 
                           className="w-12 h-12 object-cover rounded-md"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/placeholder.svg';
+                          }}
                         />
                       </TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>

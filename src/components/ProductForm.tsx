@@ -28,7 +28,7 @@ import {
 
 interface ProductFormProps {
   product?: Product;
-  onSubmit: (data: ProductFormValues) => void;
+  onSubmit: (data: ProductFormValues, file?: File) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
 }
@@ -49,6 +49,7 @@ export type ProductFormValues = z.infer<typeof formSchema>;
 const ProductForm = ({ product, onSubmit, onCancel, isSubmitting = false }: ProductFormProps) => {
   const [previewImage, setPreviewImage] = useState<string | null>(product?.image || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(formSchema),
@@ -87,17 +88,20 @@ const ProductForm = ({ product, onSubmit, onCancel, isSubmitting = false }: Prod
       return;
     }
     
-    // Create a preview URL and set the form value
+    // Store the actual file for submission
+    setSelectedFile(file);
+    
+    // Create a preview URL
     const imageUrl = URL.createObjectURL(file);
     setPreviewImage(imageUrl);
     
-    // In a real app, we'd upload to a server or storage service
-    // For now, we'll use the object URL as a placeholder
-    form.setValue('image', imageUrl);
+    // Set the form value to a placeholder - the actual file will be handled separately
+    form.setValue('image', 'file-selected');
   };
   
   const clearImage = () => {
     setPreviewImage(null);
+    setSelectedFile(null);
     form.setValue('image', '/placeholder.svg');
     // Reset the file input
     if (fileInputRef.current) {
@@ -112,7 +116,7 @@ const ProductForm = ({ product, onSubmit, onCancel, isSubmitting = false }: Prod
   };
 
   const handleSubmit = form.handleSubmit((data) => {
-    onSubmit(data);
+    onSubmit(data, selectedFile || undefined);
   });
 
   return (
