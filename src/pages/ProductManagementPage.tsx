@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -30,7 +31,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAppContext } from '@/contexts/AppContext';
-import { Product, SubscriptionTier } from '@/types';
+import { Product, SubscriptionTier, ProductCategory, DeliveryOption } from '@/types';
 import { 
   Dialog,
   DialogContent,
@@ -69,6 +70,15 @@ const ProductManagementPage = () => {
     }
   };
 
+  // Helper function to safely cast database values to our specific types
+  const isValidCategory = (category: string): category is ProductCategory => {
+    return ['groceries', 'handmade', 'farm'].includes(category);
+  };
+
+  const isValidDeliveryOption = (option: string): option is DeliveryOption => {
+    return ['delivery', 'pickup', 'both'].includes(option);
+  };
+
   const fetchProducts = async () => {
     setLoading(true);
     try {
@@ -81,19 +91,31 @@ const ProductManagementPage = () => {
       }
       
       if (data) {
-        const formattedProducts = data.map((product: any) => ({
-          id: product.id,
-          name: product.name,
-          description: product.description,
-          price: parseFloat(product.price),
-          image: product.image,
-          category: product.category,
-          sellerId: product.seller_id,
-          stock: product.stock,
-          deliveryOption: product.delivery_option,
-          createdAt: product.created_at,
-          updatedAt: product.updated_at
-        }));
+        const formattedProducts = data.map((product: any) => {
+          // Ensure category is valid, default to 'farm' if not
+          const category = isValidCategory(product.category) 
+            ? product.category as ProductCategory 
+            : 'farm';
+          
+          // Ensure delivery_option is valid, default to 'both' if not
+          const deliveryOption = isValidDeliveryOption(product.delivery_option) 
+            ? product.delivery_option as DeliveryOption 
+            : 'both';
+            
+          return {
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            price: parseFloat(String(product.price)),
+            image: product.image,
+            category: category,
+            sellerId: product.seller_id,
+            stock: product.stock,
+            deliveryOption: deliveryOption,
+            createdAt: product.created_at,
+            updatedAt: product.updated_at
+          };
+        });
         
         setLocalProducts(formattedProducts);
         
@@ -158,7 +180,7 @@ const ProductManagementPage = () => {
         .insert({
           name: formData.name,
           description: formData.description,
-          price: formData.price,
+          price: String(formData.price), // Convert number to string for Supabase
           image: imageUrl,
           category: formData.category,
           stock: formData.stock,
@@ -172,17 +194,26 @@ const ProductManagementPage = () => {
       }
       
       if (data && data[0]) {
+        // Safely cast the values from the database
+        const category = isValidCategory(data[0].category) 
+          ? data[0].category as ProductCategory 
+          : 'farm';
+        
+        const deliveryOption = isValidDeliveryOption(data[0].delivery_option) 
+          ? data[0].delivery_option as DeliveryOption 
+          : 'both';
+          
         // Format the product to match our app's data structure
         const newProduct: Product = {
           id: data[0].id,
           name: data[0].name,
           description: data[0].description,
-          price: parseFloat(data[0].price),
+          price: parseFloat(String(data[0].price)),
           image: data[0].image,
-          category: data[0].category,
+          category: category,
           sellerId: data[0].seller_id,
           stock: data[0].stock,
-          deliveryOption: data[0].delivery_option,
+          deliveryOption: deliveryOption,
           createdAt: data[0].created_at,
           updatedAt: data[0].updated_at
         };
@@ -253,7 +284,7 @@ const ProductManagementPage = () => {
         .update({
           name: formData.name,
           description: formData.description,
-          price: formData.price,
+          price: String(formData.price), // Convert number to string for Supabase
           image: imageUrl,
           category: formData.category,
           stock: formData.stock,
@@ -268,17 +299,26 @@ const ProductManagementPage = () => {
       }
       
       if (data && data[0]) {
+        // Safely cast the values from the database
+        const category = isValidCategory(data[0].category) 
+          ? data[0].category as ProductCategory 
+          : 'farm';
+        
+        const deliveryOption = isValidDeliveryOption(data[0].delivery_option) 
+          ? data[0].delivery_option as DeliveryOption 
+          : 'both';
+          
         // Format the updated product
         const updatedProduct: Product = {
           id: data[0].id,
           name: data[0].name,
           description: data[0].description,
-          price: parseFloat(data[0].price),
+          price: parseFloat(String(data[0].price)),
           image: data[0].image,
-          category: data[0].category,
+          category: category,
           sellerId: data[0].seller_id,
           stock: data[0].stock,
-          deliveryOption: data[0].delivery_option,
+          deliveryOption: deliveryOption,
           createdAt: data[0].created_at,
           updatedAt: data[0].updated_at
         };

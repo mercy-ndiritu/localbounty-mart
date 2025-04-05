@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { CartItem, Product, SubscriptionTier, Order, OrderStatus } from '../types';
+import { CartItem, Product, SubscriptionTier, Order, OrderStatus, ProductCategory, DeliveryOption } from '../types';
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 
@@ -29,6 +29,15 @@ interface AppContextType {
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+
+// Helper functions to safely cast database values to our specific types
+const isValidCategory = (category: string): category is ProductCategory => {
+  return ['groceries', 'handmade', 'farm'].includes(category);
+};
+
+const isValidDeliveryOption = (option: string): option is DeliveryOption => {
+  return ['delivery', 'pickup', 'both'].includes(option);
+};
 
 export const AppProvider = ({ 
   children,
@@ -66,19 +75,30 @@ export const AppProvider = ({
       }
       
       if (data) {
-        const formattedProducts = data.map((product: any) => ({
-          id: product.id,
-          name: product.name,
-          description: product.description,
-          price: parseFloat(product.price),
-          image: product.image,
-          category: product.category,
-          sellerId: product.seller_id,
-          stock: product.stock,
-          deliveryOption: product.delivery_option,
-          createdAt: product.created_at,
-          updatedAt: product.updated_at
-        }));
+        const formattedProducts = data.map((product: any) => {
+          // Safely cast the values from the database
+          const category = isValidCategory(product.category) 
+            ? product.category as ProductCategory 
+            : 'farm';
+          
+          const deliveryOption = isValidDeliveryOption(product.delivery_option) 
+            ? product.delivery_option as DeliveryOption 
+            : 'both';
+            
+          return {
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            price: parseFloat(String(product.price)),
+            image: product.image,
+            category: category,
+            sellerId: product.seller_id,
+            stock: product.stock,
+            deliveryOption: deliveryOption,
+            createdAt: product.created_at,
+            updatedAt: product.updated_at
+          };
+        });
         
         setProducts(formattedProducts);
       }
@@ -213,6 +233,10 @@ export const AppProvider = ({
   useEffect(() => {
     localStorage.setItem('subscriptionTier', subscriptionTier);
   }, [subscriptionTier]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   return (
     <AppContext.Provider value={{
