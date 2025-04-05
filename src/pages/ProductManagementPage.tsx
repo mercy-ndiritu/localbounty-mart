@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -75,7 +74,7 @@ const ProductManagementPage = () => {
     return ['groceries', 'handmade', 'farm'].includes(category);
   };
 
-  const isValidDeliveryOption = (option: string): category is DeliveryOption => {
+  const isValidDeliveryOption = (option: string): option is DeliveryOption => {
     return ['delivery', 'pickup', 'both'].includes(option);
   };
 
