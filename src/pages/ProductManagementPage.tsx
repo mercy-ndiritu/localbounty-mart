@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -81,26 +80,28 @@ const ProductManagementPage = () => {
         throw error;
       }
       
-      const formattedProducts = data.map((product) => ({
-        id: product.id,
-        name: product.name,
-        description: product.description,
-        price: parseFloat(product.price),
-        image: product.image,
-        category: product.category,
-        sellerId: product.seller_id,
-        stock: product.stock,
-        deliveryOption: product.delivery_option,
-        createdAt: product.created_at,
-        updatedAt: product.updated_at
-      }));
-      
-      setLocalProducts(formattedProducts);
-      
-      if (formattedProducts.length > 0 && addProduct) {
-        formattedProducts.forEach((product: Product) => {
-          addProduct(product);
-        });
+      if (data) {
+        const formattedProducts = data.map((product: any) => ({
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          price: parseFloat(product.price),
+          image: product.image,
+          category: product.category,
+          sellerId: product.seller_id,
+          stock: product.stock,
+          deliveryOption: product.delivery_option,
+          createdAt: product.created_at,
+          updatedAt: product.updated_at
+        }));
+        
+        setLocalProducts(formattedProducts);
+        
+        if (formattedProducts.length > 0 && addProduct) {
+          formattedProducts.forEach((product: Product) => {
+            addProduct(product);
+          });
+        }
       }
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -164,40 +165,41 @@ const ProductManagementPage = () => {
           delivery_option: formData.deliveryOption,
           seller_id: 's5', // Hardcoded for now, would normally be the current user's ID
         })
-        .select()
-        .single();
+        .select();
       
       if (error) {
         throw error;
       }
       
-      // Format the product to match our app's data structure
-      const newProduct: Product = {
-        id: data.id,
-        name: data.name,
-        description: data.description,
-        price: parseFloat(data.price),
-        image: data.image,
-        category: data.category,
-        sellerId: data.seller_id,
-        stock: data.stock,
-        deliveryOption: data.delivery_option,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
-      };
-      
-      setLocalProducts(prev => [...prev, newProduct]);
-      
-      if (addProduct) {
-        addProduct(newProduct);
+      if (data && data[0]) {
+        // Format the product to match our app's data structure
+        const newProduct: Product = {
+          id: data[0].id,
+          name: data[0].name,
+          description: data[0].description,
+          price: parseFloat(data[0].price),
+          image: data[0].image,
+          category: data[0].category,
+          sellerId: data[0].seller_id,
+          stock: data[0].stock,
+          deliveryOption: data[0].delivery_option,
+          createdAt: data[0].created_at,
+          updatedAt: data[0].updated_at
+        };
+        
+        setLocalProducts(prev => [...prev, newProduct]);
+        
+        if (addProduct) {
+          addProduct(newProduct);
+        }
+        
+        toast({
+          title: "Product added",
+          description: `${formData.name} has been added to your product catalog.`,
+        });
+        
+        setShowProductDialog(false);
       }
-      
-      toast({
-        title: "Product added",
-        description: `${formData.name} has been added to your product catalog.`,
-      });
-      
-      setShowProductDialog(false);
     } catch (error: any) {
       console.error('Error adding product:', error);
       toast({
@@ -259,43 +261,44 @@ const ProductManagementPage = () => {
           updated_at: new Date().toISOString(),
         })
         .eq('id', editingProduct.id)
-        .select()
-        .single();
+        .select();
       
       if (error) {
         throw error;
       }
       
-      // Format the updated product
-      const updatedProduct: Product = {
-        id: data.id,
-        name: data.name,
-        description: data.description,
-        price: parseFloat(data.price),
-        image: data.image,
-        category: data.category,
-        sellerId: data.seller_id,
-        stock: data.stock,
-        deliveryOption: data.delivery_option,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
-      };
-      
-      setLocalProducts(prev => 
-        prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
-      );
-      
-      if (updateProduct) {
-        updateProduct(updatedProduct);
+      if (data && data[0]) {
+        // Format the updated product
+        const updatedProduct: Product = {
+          id: data[0].id,
+          name: data[0].name,
+          description: data[0].description,
+          price: parseFloat(data[0].price),
+          image: data[0].image,
+          category: data[0].category,
+          sellerId: data[0].seller_id,
+          stock: data[0].stock,
+          deliveryOption: data[0].delivery_option,
+          createdAt: data[0].created_at,
+          updatedAt: data[0].updated_at
+        };
+        
+        setLocalProducts(prev => 
+          prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+        );
+        
+        if (updateProduct) {
+          updateProduct(updatedProduct);
+        }
+        
+        toast({
+          title: "Product updated",
+          description: `${formData.name} has been updated.`,
+        });
+        
+        setShowProductDialog(false);
+        setEditingProduct(null);
       }
-      
-      toast({
-        title: "Product updated",
-        description: `${formData.name} has been updated.`,
-      });
-      
-      setShowProductDialog(false);
-      setEditingProduct(null);
     } catch (error: any) {
       console.error('Error updating product:', error);
       toast({
@@ -567,12 +570,13 @@ const ProductManagementPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedProducts.length > 0 ? (
-                  sortedProducts.map((product) => (
+                {/* Use local product data */}
+                {localProducts.length > 0 ? (
+                  localProducts.map((product) => (
                     <TableRow key={product.id}>
                       <TableCell>
                         <img 
-                          src={product.image && product.image.startsWith('/uploads') ? `${API_URL}${product.image}` : product.image} 
+                          src={product.image} 
                           alt={product.name} 
                           className="w-12 h-12 object-cover rounded-md"
                           onError={(e) => {

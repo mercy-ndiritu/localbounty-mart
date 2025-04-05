@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CartItem, Product, SubscriptionTier, Order, OrderStatus } from '../types';
 import { toast } from "@/components/ui/use-toast";
@@ -64,21 +65,23 @@ export const AppProvider = ({
         throw error;
       }
       
-      const formattedProducts = data.map((product) => ({
-        id: product.id,
-        name: product.name,
-        description: product.description,
-        price: parseFloat(product.price),
-        image: product.image,
-        category: product.category,
-        sellerId: product.seller_id,
-        stock: product.stock,
-        deliveryOption: product.delivery_option,
-        createdAt: product.created_at,
-        updatedAt: product.updated_at
-      }));
-      
-      setProducts(formattedProducts);
+      if (data) {
+        const formattedProducts = data.map((product: any) => ({
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          price: parseFloat(product.price),
+          image: product.image,
+          category: product.category,
+          sellerId: product.seller_id,
+          stock: product.stock,
+          deliveryOption: product.delivery_option,
+          createdAt: product.created_at,
+          updatedAt: product.updated_at
+        }));
+        
+        setProducts(formattedProducts);
+      }
     } catch (error) {
       console.error('Error fetching products:', error);
       toast({
