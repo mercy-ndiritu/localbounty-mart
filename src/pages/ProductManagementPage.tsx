@@ -75,7 +75,7 @@ const ProductManagementPage = () => {
     return ['groceries', 'handmade', 'farm'].includes(category);
   };
 
-  const isValidDeliveryOption = (option: string): option is DeliveryOption => {
+  const isValidDeliveryOption = (option: string): category is DeliveryOption => {
     return ['delivery', 'pickup', 'both'].includes(option);
   };
 
@@ -106,7 +106,7 @@ const ProductManagementPage = () => {
             id: product.id,
             name: product.name,
             description: product.description,
-            price: parseFloat(String(product.price)),
+            price: typeof product.price === 'string' ? parseFloat(product.price) : product.price,
             image: product.image,
             category: category,
             sellerId: product.seller_id,
@@ -180,7 +180,7 @@ const ProductManagementPage = () => {
         .insert({
           name: formData.name,
           description: formData.description,
-          price: String(formData.price), // Convert number to string for Supabase
+          price: formData.price, // This should now be a number as expected by Supabase
           image: imageUrl,
           category: formData.category,
           stock: formData.stock,
@@ -208,7 +208,7 @@ const ProductManagementPage = () => {
           id: data[0].id,
           name: data[0].name,
           description: data[0].description,
-          price: parseFloat(String(data[0].price)),
+          price: typeof data[0].price === 'string' ? parseFloat(data[0].price) : data[0].price,
           image: data[0].image,
           category: category,
           sellerId: data[0].seller_id,
@@ -284,7 +284,7 @@ const ProductManagementPage = () => {
         .update({
           name: formData.name,
           description: formData.description,
-          price: String(formData.price), // Convert number to string for Supabase
+          price: formData.price, // Now sending a number as expected by Supabase
           image: imageUrl,
           category: formData.category,
           stock: formData.stock,
@@ -313,7 +313,7 @@ const ProductManagementPage = () => {
           id: data[0].id,
           name: data[0].name,
           description: data[0].description,
-          price: parseFloat(String(data[0].price)),
+          price: typeof data[0].price === 'string' ? parseFloat(data[0].price) : data[0].price,
           image: data[0].image,
           category: category,
           sellerId: data[0].seller_id,
