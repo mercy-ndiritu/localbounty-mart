@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -41,8 +42,8 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
 import ProductForm, { ProductFormValues } from '@/components/ProductForm';
-
-const API_URL = '/api';
+import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
 
 const ProductManagementPage = () => {
   const navigate = useNavigate();
@@ -72,15 +73,32 @@ const ProductManagementPage = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/products`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
-      }
-      const data = await response.json();
-      setLocalProducts(data);
+      const { data, error } = await supabase
+        .from('products')
+        .select('*');
       
-      if (data.length > 0 && addProduct) {
-        data.forEach((product: Product) => {
+      if (error) {
+        throw error;
+      }
+      
+      const formattedProducts = data.map((product) => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: parseFloat(product.price),
+        image: product.image,
+        category: product.category,
+        sellerId: product.seller_id,
+        stock: product.stock,
+        deliveryOption: product.delivery_option,
+        createdAt: product.created_at,
+        updatedAt: product.updated_at
+      }));
+      
+      setLocalProducts(formattedProducts);
+      
+      if (formattedProducts.length > 0 && addProduct) {
+        formattedProducts.forEach((product: Product) => {
           addProduct(product);
         });
       }
@@ -109,36 +127,64 @@ const ProductManagementPage = () => {
     setSubmitting(true);
     
     try {
-      const formDataObj = new FormData();
+      let imageUrl = formData.image;
       
-      const productData = {
-        name: formData.name,
-        description: formData.description,
-        price: formData.price,
-        category: formData.category,
-        stock: formData.stock,
-        deliveryOption: formData.deliveryOption,
-        sellerId: 's5',
-      };
-      
-      formDataObj.append('productData', JSON.stringify(productData));
-      
+      // Upload the image to Supabase Storage if a file is provided
       if (file) {
-        formDataObj.append('image', file);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${uuidv4()}.${fileExt}`;
+        const filePath = `${fileName}`;
+        
+        const { error: uploadError, data } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, file);
+        
+        if (uploadError) {
+          throw uploadError;
+        }
+        
+        // Get the public URL for the uploaded image
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+        
+        imageUrl = publicUrl;
       }
       
-      const response = await fetch(`${API_URL}/products`, {
-        method: 'POST',
-        body: formDataObj,
-      });
+      // Insert the product into the database
+      const { error, data } = await supabase
+        .from('products')
+        .insert({
+          name: formData.name,
+          description: formData.description,
+          price: formData.price,
+          image: imageUrl,
+          category: formData.category,
+          stock: formData.stock,
+          delivery_option: formData.deliveryOption,
+          seller_id: 's5', // Hardcoded for now, would normally be the current user's ID
+        })
+        .select()
+        .single();
       
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Server error:', errorData);
-        throw new Error('Failed to add product: ' + errorData);
+      if (error) {
+        throw error;
       }
       
-      const newProduct = await response.json();
+      // Format the product to match our app's data structure
+      const newProduct: Product = {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        price: parseFloat(data.price),
+        image: data.image,
+        category: data.category,
+        sellerId: data.seller_id,
+        stock: data.stock,
+        deliveryOption: data.delivery_option,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
       
       setLocalProducts(prev => [...prev, newProduct]);
       
@@ -152,11 +198,11 @@ const ProductManagementPage = () => {
       });
       
       setShowProductDialog(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding product:', error);
       toast({
         title: "Error",
-        description: "Failed to add product. Please try again.",
+        description: `Failed to add product: ${error.message}`,
         variant: "destructive",
       });
     } finally {
@@ -175,35 +221,65 @@ const ProductManagementPage = () => {
     setSubmitting(true);
     
     try {
-      const formDataObj = new FormData();
+      let imageUrl = editingProduct.image;
       
-      const productData = {
-        name: formData.name,
-        description: formData.description,
-        price: formData.price,
-        category: formData.category,
-        stock: formData.stock,
-        deliveryOption: formData.deliveryOption,
-      };
-      
-      formDataObj.append('productData', JSON.stringify(productData));
-      
+      // Upload the image to Supabase Storage if a file is provided
       if (file) {
-        formDataObj.append('image', file);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${uuidv4()}.${fileExt}`;
+        const filePath = `${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, file);
+        
+        if (uploadError) {
+          throw uploadError;
+        }
+        
+        // Get the public URL for the uploaded image
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+        
+        imageUrl = publicUrl;
       }
       
-      const response = await fetch(`${API_URL}/products/${editingProduct.id}`, {
-        method: 'PUT',
-        body: formDataObj,
-      });
+      // Update the product in the database
+      const { error, data } = await supabase
+        .from('products')
+        .update({
+          name: formData.name,
+          description: formData.description,
+          price: formData.price,
+          image: imageUrl,
+          category: formData.category,
+          stock: formData.stock,
+          delivery_option: formData.deliveryOption,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', editingProduct.id)
+        .select()
+        .single();
       
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Server error:', errorData);
-        throw new Error('Failed to update product: ' + errorData);
+      if (error) {
+        throw error;
       }
       
-      const updatedProduct = await response.json();
+      // Format the updated product
+      const updatedProduct: Product = {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        price: parseFloat(data.price),
+        image: data.image,
+        category: data.category,
+        sellerId: data.seller_id,
+        stock: data.stock,
+        deliveryOption: data.delivery_option,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      };
       
       setLocalProducts(prev => 
         prev.map(p => p.id === updatedProduct.id ? updatedProduct : p)
@@ -220,11 +296,11 @@ const ProductManagementPage = () => {
       
       setShowProductDialog(false);
       setEditingProduct(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating product:', error);
       toast({
         title: "Error",
-        description: "Failed to update product. Please try again.",
+        description: `Failed to update product: ${error.message}`,
         variant: "destructive",
       });
     } finally {
@@ -241,14 +317,17 @@ const ProductManagementPage = () => {
     if (!deletingProduct) return;
     
     try {
-      const response = await fetch(`${API_URL}/products/${deletingProduct.id}`, {
-        method: 'DELETE',
-      });
+      // Delete the product from the database
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', deletingProduct.id);
       
-      if (!response.ok) {
-        throw new Error('Failed to delete product');
+      if (error) {
+        throw error;
       }
       
+      // Remove the product from the local state
       setLocalProducts(prev => prev.filter(p => p.id !== deletingProduct.id));
       
       if (deleteProduct) {
@@ -262,11 +341,11 @@ const ProductManagementPage = () => {
       
       setShowDeleteDialog(false);
       setDeletingProduct(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting product:', error);
       toast({
         title: "Error",
-        description: "Failed to delete product. Please try again.",
+        description: `Failed to delete product: ${error.message}`,
         variant: "destructive",
       });
     }

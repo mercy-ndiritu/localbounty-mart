@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { CartItem, Product, SubscriptionTier, Order, OrderStatus } from '../types';
 import { toast } from "@/components/ui/use-toast";
-
-const API_URL = '/api';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AppContextType {
   cart: CartItem[];
@@ -50,39 +49,41 @@ export const AppProvider = ({
   updateOrderStatus?: (orderId: string, status: OrderStatus) => void;
 }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [userType, setUserType] = useState<'customer' | 'seller' | 'guest'>('guest');
+  const [userType, setUserType] = useState<'customer' | 'seller' | 'guest'>('seller');
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>('basic');
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
   const [products, setProducts] = useState<Product[]>(initialProducts || []);
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`${API_URL}/products`);
+      const { data, error } = await supabase
+        .from('products')
+        .select('*');
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server error:', errorText);
-        throw new Error(`Failed to fetch products: ${response.status} ${response.statusText}`);
+      if (error) {
+        throw error;
       }
       
-      const data = await response.json();
+      const formattedProducts = data.map((product) => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: parseFloat(product.price),
+        image: product.image,
+        category: product.category,
+        sellerId: product.seller_id,
+        stock: product.stock,
+        deliveryOption: product.delivery_option,
+        createdAt: product.created_at,
+        updatedAt: product.updated_at
+      }));
       
-      const processedData = data.map((product: Product) => {
-        if (product.image && product.image.startsWith('/uploads')) {
-          return {
-            ...product,
-            image: `${API_URL}${product.image}`
-          };
-        }
-        return product;
-      });
-      
-      setProducts(processedData);
+      setProducts(formattedProducts);
     } catch (error) {
       console.error('Error fetching products:', error);
       toast({
         title: "Error loading products",
-        description: "Could not load products from the server.",
+        description: "Could not load products from the database.",
         variant: "destructive",
       });
     }
