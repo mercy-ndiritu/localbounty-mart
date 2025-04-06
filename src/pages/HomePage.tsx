@@ -5,12 +5,45 @@ import { Button } from '@/components/ui/button';
 import { ShoppingBag, Truck, Users, ThumbsUp } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import SellerCard from '@/components/SellerCard';
-import { PRODUCTS, SELLERS } from '@/data/mockData';
+import { useAppContext } from '@/contexts/AppContext';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const featuredProducts = PRODUCTS.slice(0, 4);
-  const featuredSellers = SELLERS.slice(0, 3);
+  const { products } = useAppContext();
+  
+  // Safely access the first 4 products, or use empty array if products is undefined
+  const featuredProducts = products?.slice(0, 4) || [];
+  
+  // Use mock data for sellers as it appears we don't have real seller data yet
+  const featuredSellers = [
+    {
+      id: 's1',
+      name: 'Green Farms',
+      description: 'Organic farm produce',
+      rating: 4.8,
+      productsCount: 24,
+      image: '/placeholder.svg',
+      location: 'Nairobi',
+    },
+    {
+      id: 's2',
+      name: 'Artisan Crafts',
+      description: 'Handmade local crafts',
+      rating: 4.6,
+      productsCount: 18,
+      image: '/placeholder.svg',
+      location: 'Kisumu',
+    },
+    {
+      id: 's3',
+      name: 'Fresh Dairy',
+      description: 'Farm fresh dairy products',
+      rating: 4.9,
+      productsCount: 12,
+      image: '/placeholder.svg',
+      location: 'Nakuru',
+    }
+  ];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -112,9 +145,15 @@ const HomePage = () => {
             </Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {featuredProducts.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+            {featuredProducts.length > 0 ? (
+              featuredProducts.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))
+            ) : (
+              <div className="col-span-4 text-center py-8">
+                <p className="text-gray-500">Loading products...</p>
+              </div>
+            )}
           </div>
         </div>
       </section>

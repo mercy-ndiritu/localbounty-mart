@@ -71,6 +71,7 @@ export const AppProvider = ({
         .select('*');
       
       if (error) {
+        console.error('Error fetching products:', error);
         throw error;
       }
       
@@ -85,18 +86,25 @@ export const AppProvider = ({
             ? product.delivery_option as DeliveryOption 
             : 'both';
             
+          // Ensure price is a number
+          const price = typeof product.price === 'string' 
+            ? parseFloat(product.price) 
+            : typeof product.price === 'number' 
+              ? product.price 
+              : 0;
+            
           return {
-            id: product.id,
-            name: product.name,
-            description: product.description,
-            price: typeof product.price === 'string' ? parseFloat(product.price) : Number(product.price),
-            image: product.image,
+            id: product.id || '',
+            name: product.name || '',
+            description: product.description || '',
+            price: price,
+            image: product.image || '/placeholder.svg',
             category: category,
-            sellerId: product.seller_id,
-            stock: product.stock,
+            sellerId: product.seller_id || '',
+            stock: Number(product.stock) || 0,
             deliveryOption: deliveryOption,
-            createdAt: product.created_at,
-            updatedAt: product.updated_at
+            createdAt: product.created_at || new Date().toISOString(),
+            updatedAt: product.updated_at || new Date().toISOString()
           };
         });
         
@@ -113,7 +121,10 @@ export const AppProvider = ({
   };
 
   useEffect(() => {
-    fetchProducts();
+    fetchProducts()
+      .catch(err => {
+        console.error('Failed to fetch products on initial load:', err);
+      });
   }, []);
 
   const cartTotal = cart.reduce((total, item) => total + (item.product.price * item.quantity), 0);
@@ -234,8 +245,12 @@ export const AppProvider = ({
     localStorage.setItem('subscriptionTier', subscriptionTier);
   }, [subscriptionTier]);
 
+  // Ensure we fetch products on initial load
   useEffect(() => {
-    fetchProducts();
+    fetchProducts()
+      .catch(err => {
+        console.error('Failed to fetch products:', err);
+      });
   }, []);
 
   return (
