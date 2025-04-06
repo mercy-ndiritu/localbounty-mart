@@ -89,7 +89,7 @@ export const AppProvider = ({
             id: product.id,
             name: product.name,
             description: product.description,
-            price: typeof product.price === 'string' ? parseFloat(product.price) : product.price,
+            price: typeof product.price === 'string' ? parseFloat(product.price) : Number(product.price),
             image: product.image,
             category: category,
             sellerId: product.seller_id,
