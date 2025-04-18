@@ -136,7 +136,26 @@ const ProductsPage = () => {
       ) : (
         <div>
           <p className="mb-4 text-gray-600">{filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {/* 🔍 Debug duplicate IDs */}
+            {(() => {
+              const seenIds = new Set();
+              const duplicates: string[] = [];
+
+              filteredProducts.forEach(p => {
+                if (seenIds.has(p.id)) {
+                  duplicates.push(p.id);
+                } else {
+                  seenIds.add(p.id);
+                }
+              });
+
+              if (duplicates.length) {
+                console.warn("Duplicate product IDs detected:", duplicates);
+              }
+
+              return null; // Prevent rendering anything
+            })()}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">           
             {filteredProducts.map(product => (
               <ProductCard key={product.id} product={product} />
             ))}

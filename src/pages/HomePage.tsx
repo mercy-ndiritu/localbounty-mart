@@ -44,7 +44,7 @@ const HomePage = () => {
             <div className="hidden md:block">
               <div className="relative">
                 <img 
-                  src="/placeholder.svg" 
+                  src="/images/homepage2.png" 
                   alt="Fresh local products" 
                   className="rounded-lg shadow-lg"
                 />
