@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -5,6 +6,7 @@ import { ShoppingBag, Truck, Users, ThumbsUp } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import SellerCard from '@/components/SellerCard';
 import { useAppContext } from '@/contexts/AppContext';
+import type { SubscriptionTier } from '@/types';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -21,7 +23,7 @@ const HomePage = () => {
       productCount: 24,
       image: '/placeholder.svg',
       location: 'Nairobi',
-      subscriptionTier: 'basic'
+      subscriptionTier: 'basic' as SubscriptionTier
     },
     {
       id: 's2',
@@ -31,7 +33,7 @@ const HomePage = () => {
       productCount: 18,
       image: '/placeholder.svg',
       location: 'Kisumu',
-      subscriptionTier: 'basic'
+      subscriptionTier: 'basic' as SubscriptionTier
     },
     {
       id: 's3',
@@ -41,7 +43,7 @@ const HomePage = () => {
       productCount: 12,
       image: '/placeholder.svg',
       location: 'Nakuru',
-      subscriptionTier: 'basic'
+      subscriptionTier: 'basic' as SubscriptionTier
     }
   ];
 
