@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAppContext } from '@/contexts/AppContext';
-import { Product, SubscriptionTier } from '@/types';
+import { Product, SubscriptionTier, ProductCategory, DeliveryOption } from '@/types';
 import { 
   Dialog,
   DialogContent,
@@ -69,6 +69,14 @@ const ProductManagementPage = () => {
     }
   };
 
+  const isValidCategory = (category: string): category is ProductCategory => {
+    return ['groceries', 'handmade', 'farm'].includes(category);
+  };
+
+  const isValidDeliveryOption = (option: string): option is DeliveryOption => {
+    return ['delivery', 'pickup', 'both'].includes(option);
+  };
+
   const fetchProducts = async () => {
     setLoading(true);
     try {
@@ -81,19 +89,29 @@ const ProductManagementPage = () => {
       }
       
       if (data) {
-        const formattedProducts = data.map((product: any) => ({
-          id: product.id,
-          name: product.name,
-          description: product.description,
-          price: parseFloat(product.price),
-          image: product.image,
-          category: product.category,
-          sellerId: product.seller_id,
-          stock: product.stock,
-          deliveryOption: product.delivery_option,
-          createdAt: product.created_at,
-          updatedAt: product.updated_at
-        }));
+        const formattedProducts = data.map((product: any) => {
+          const category = isValidCategory(product.category) 
+            ? product.category as ProductCategory 
+            : 'farm';
+          
+          const deliveryOption = isValidDeliveryOption(product.delivery_option) 
+            ? product.delivery_option as DeliveryOption 
+            : 'both';
+            
+          return {
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            price: typeof product.price === 'string' ? parseFloat(product.price) : product.price,
+            image: product.image,
+            category: category,
+            sellerId: product.seller_id,
+            stock: product.stock,
+            deliveryOption: deliveryOption,
+            createdAt: product.created_at,
+            updatedAt: product.updated_at
+          };
+        });
         
         setLocalProducts(formattedProducts);
         
@@ -130,7 +148,6 @@ const ProductManagementPage = () => {
     try {
       let imageUrl = formData.image;
       
-      // Upload the image to Supabase Storage if a file is provided
       if (file) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${uuidv4()}.${fileExt}`;
@@ -144,7 +161,6 @@ const ProductManagementPage = () => {
           throw uploadError;
         }
         
-        // Get the public URL for the uploaded image
         const { data: { publicUrl } } = supabase.storage
           .from('product-images')
           .getPublicUrl(filePath);
@@ -152,37 +168,44 @@ const ProductManagementPage = () => {
         imageUrl = publicUrl;
       }
       
-      // Insert the product into the database
       const { error, data } = await supabase
         .from('products')
         .insert({
           name: formData.name,
           description: formData.description,
-          price: formData.price,
+          price: Number(formData.price),
           image: imageUrl,
           category: formData.category,
           stock: formData.stock,
           delivery_option: formData.deliveryOption,
-          seller_id: 's5', // Hardcoded for now, would normally be the current user's ID
+          seller_id: 's5',
         })
         .select();
       
       if (error) {
+        console.error('Supabase error details:', error);
         throw error;
       }
       
       if (data && data[0]) {
-        // Format the product to match our app's data structure
+        const category = isValidCategory(data[0].category) 
+          ? data[0].category as ProductCategory 
+          : 'farm';
+        
+        const deliveryOption = isValidDeliveryOption(data[0].delivery_option) 
+          ? data[0].delivery_option as DeliveryOption 
+          : 'both';
+          
         const newProduct: Product = {
           id: data[0].id,
           name: data[0].name,
           description: data[0].description,
-          price: parseFloat(data[0].price),
+          price: typeof data[0].price === 'string' ? parseFloat(data[0].price) : Number(data[0].price),
           image: data[0].image,
-          category: data[0].category,
+          category: category,
           sellerId: data[0].seller_id,
           stock: data[0].stock,
-          deliveryOption: data[0].delivery_option,
+          deliveryOption: deliveryOption,
           createdAt: data[0].created_at,
           updatedAt: data[0].updated_at
         };
@@ -225,7 +248,6 @@ const ProductManagementPage = () => {
     try {
       let imageUrl = editingProduct.image;
       
-      // Upload the image to Supabase Storage if a file is provided
       if (file) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${uuidv4()}.${fileExt}`;
@@ -239,7 +261,6 @@ const ProductManagementPage = () => {
           throw uploadError;
         }
         
-        // Get the public URL for the uploaded image
         const { data: { publicUrl } } = supabase.storage
           .from('product-images')
           .getPublicUrl(filePath);
@@ -247,13 +268,12 @@ const ProductManagementPage = () => {
         imageUrl = publicUrl;
       }
       
-      // Update the product in the database
       const { error, data } = await supabase
         .from('products')
         .update({
           name: formData.name,
           description: formData.description,
-          price: formData.price,
+          price: Number(formData.price),
           image: imageUrl,
           category: formData.category,
           stock: formData.stock,
@@ -264,21 +284,29 @@ const ProductManagementPage = () => {
         .select();
       
       if (error) {
+        console.error('Supabase error details:', error);
         throw error;
       }
       
       if (data && data[0]) {
-        // Format the updated product
+        const category = isValidCategory(data[0].category) 
+          ? data[0].category as ProductCategory 
+          : 'farm';
+        
+        const deliveryOption = isValidDeliveryOption(data[0].delivery_option) 
+          ? data[0].delivery_option as DeliveryOption 
+          : 'both';
+          
         const updatedProduct: Product = {
           id: data[0].id,
           name: data[0].name,
           description: data[0].description,
-          price: parseFloat(data[0].price),
+          price: typeof data[0].price === 'string' ? parseFloat(data[0].price) : Number(data[0].price),
           image: data[0].image,
-          category: data[0].category,
+          category: category,
           sellerId: data[0].seller_id,
           stock: data[0].stock,
-          deliveryOption: data[0].delivery_option,
+          deliveryOption: deliveryOption,
           createdAt: data[0].created_at,
           updatedAt: data[0].updated_at
         };
@@ -320,7 +348,6 @@ const ProductManagementPage = () => {
     if (!deletingProduct) return;
     
     try {
-      // Delete the product from the database
       const { error } = await supabase
         .from('products')
         .delete()
@@ -330,7 +357,6 @@ const ProductManagementPage = () => {
         throw error;
       }
       
-      // Remove the product from the local state
       setLocalProducts(prev => prev.filter(p => p.id !== deletingProduct.id));
       
       if (deleteProduct) {
@@ -570,7 +596,6 @@ const ProductManagementPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {/* Use local product data */}
                 {localProducts.length > 0 ? (
                   localProducts.map((product) => (
                     <TableRow key={product.id}>

@@ -5,16 +5,50 @@ import { Button } from '@/components/ui/button';
 import { ShoppingBag, Truck, Users, ThumbsUp } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import SellerCard from '@/components/SellerCard';
-import { PRODUCTS, SELLERS } from '@/data/mockData';
+import { useAppContext } from '@/contexts/AppContext';
+import type { SubscriptionTier } from '@/types';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const featuredProducts = PRODUCTS.slice(0, 4);
-  const featuredSellers = SELLERS.slice(0, 3);
+  const { products } = useAppContext();
+  
+  const featuredProducts = products?.slice(0, 4) || [];
+
+  const featuredSellers = [
+    {
+      id: 's1',
+      name: 'Green Farms',
+      description: 'Organic farm produce',
+      rating: 4.8,
+      productCount: 24,
+      image: '/placeholder.svg',
+      location: 'Nairobi',
+      subscriptionTier: 'basic' as SubscriptionTier
+    },
+    {
+      id: 's2',
+      name: 'Artisan Crafts',
+      description: 'Handmade local crafts',
+      rating: 4.6,
+      productCount: 18,
+      image: '/placeholder.svg',
+      location: 'Kisumu',
+      subscriptionTier: 'basic' as SubscriptionTier
+    },
+    {
+      id: 's3',
+      name: 'Fresh Dairy',
+      description: 'Farm fresh dairy products',
+      rating: 4.9,
+      productCount: 12,
+      image: '/placeholder.svg',
+      location: 'Nakuru',
+      subscriptionTier: 'basic' as SubscriptionTier
+    }
+  ];
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
       <section className="py-12 px-4 md:py-20 bg-gradient-to-br from-market-light to-white">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
@@ -60,7 +94,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Features */}
       <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 text-market-dark">
@@ -98,7 +131,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Featured Products */}
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
@@ -112,14 +144,19 @@ const HomePage = () => {
             </Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {featuredProducts.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+            {featuredProducts.length > 0 ? (
+              featuredProducts.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))
+            ) : (
+              <div className="col-span-4 text-center py-8">
+                <p className="text-gray-500">Loading products...</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Featured Sellers */}
       <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
@@ -140,7 +177,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-16 px-4 bg-market-primary text-white">
         <div className="container mx-auto text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">Start Selling Your Products Today</h2>

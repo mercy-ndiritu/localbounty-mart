@@ -43,9 +43,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
       <div className="relative">
         <div className="h-48 overflow-hidden">
           <img 
-            src={product.image} 
+            src={product.image || '/placeholder.svg'} 
             alt={product.name}
             className="w-full h-full object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = '/placeholder.svg';
+            }}
           />
         </div>
         <span className={`category-badge absolute top-2 right-2 ${getCategoryClass(product.category)}`}>
@@ -55,7 +59,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       <CardContent className="pt-4 flex-grow">
         <h3 className="text-lg font-medium mb-1">{product.name}</h3>
         <p className="text-xl font-bold text-market-primary mb-2">
-          ${product.price.toFixed(2)}
+          ${typeof product.price === 'number' ? product.price.toFixed(2) : '0.00'}
         </p>
         <p className="text-gray-600 text-sm line-clamp-2">{product.description}</p>
       </CardContent>

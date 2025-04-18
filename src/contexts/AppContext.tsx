@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { CartItem, Product, SubscriptionTier, Order, OrderStatus } from '../types';
+import { CartItem, Product, SubscriptionTier, Order, OrderStatus, ProductCategory, DeliveryOption } from '../types';
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 
@@ -29,6 +29,15 @@ interface AppContextType {
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+
+// Helper functions to safely cast database values to our specific types
+const isValidCategory = (category: string): category is ProductCategory => {
+  return ['groceries', 'handmade', 'farm'].includes(category);
+};
+
+const isValidDeliveryOption = (option: string): option is DeliveryOption => {
+  return ['delivery', 'pickup', 'both'].includes(option);
+};
 
 export const AppProvider = ({ 
   children,
@@ -62,23 +71,42 @@ export const AppProvider = ({
         .select('*');
       
       if (error) {
+        console.error('Error fetching products:', error);
         throw error;
       }
       
       if (data) {
-        const formattedProducts = data.map((product: any) => ({
-          id: product.id,
-          name: product.name,
-          description: product.description,
-          price: parseFloat(product.price),
-          image: product.image,
-          category: product.category,
-          sellerId: product.seller_id,
-          stock: product.stock,
-          deliveryOption: product.delivery_option,
-          createdAt: product.created_at,
-          updatedAt: product.updated_at
-        }));
+        const formattedProducts = data.map((product: any) => {
+          // Safely cast the values from the database
+          const category = isValidCategory(product.category) 
+            ? product.category as ProductCategory 
+            : 'farm';
+          
+          const deliveryOption = isValidDeliveryOption(product.delivery_option) 
+            ? product.delivery_option as DeliveryOption 
+            : 'both';
+            
+          // Ensure price is a number
+          const price = typeof product.price === 'string' 
+            ? parseFloat(product.price) 
+            : typeof product.price === 'number' 
+              ? product.price 
+              : 0;
+            
+          return {
+            id: product.id || '',
+            name: product.name || '',
+            description: product.description || '',
+            price: price,
+            image: product.image || '/placeholder.svg',
+            category: category,
+            sellerId: product.seller_id || '',
+            stock: Number(product.stock) || 0,
+            deliveryOption: deliveryOption,
+            createdAt: product.created_at || new Date().toISOString(),
+            updatedAt: product.updated_at || new Date().toISOString()
+          };
+        });
         
         setProducts(formattedProducts);
       }
@@ -93,7 +121,10 @@ export const AppProvider = ({
   };
 
   useEffect(() => {
-    fetchProducts();
+    fetchProducts()
+      .catch(err => {
+        console.error('Failed to fetch products on initial load:', err);
+      });
   }, []);
 
   const cartTotal = cart.reduce((total, item) => total + (item.product.price * item.quantity), 0);
@@ -213,6 +244,14 @@ export const AppProvider = ({
   useEffect(() => {
     localStorage.setItem('subscriptionTier', subscriptionTier);
   }, [subscriptionTier]);
+
+  // Ensure we fetch products on initial load
+  useEffect(() => {
+    fetchProducts()
+      .catch(err => {
+        console.error('Failed to fetch products:', err);
+      });
+  }, []);
 
   return (
     <AppContext.Provider value={{
