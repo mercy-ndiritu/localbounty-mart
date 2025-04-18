@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,43 +10,43 @@ const HomePage = () => {
   const navigate = useNavigate();
   const { products } = useAppContext();
   
-  // Safely access the first 4 products, or use empty array if products is undefined
   const featuredProducts = products?.slice(0, 4) || [];
-  
-  // Use mock data for sellers as it appears we don't have real seller data yet
+
   const featuredSellers = [
     {
       id: 's1',
       name: 'Green Farms',
       description: 'Organic farm produce',
       rating: 4.8,
-      productsCount: 24,
+      productCount: 24,
       image: '/placeholder.svg',
       location: 'Nairobi',
+      subscriptionTier: 'basic'
     },
     {
       id: 's2',
       name: 'Artisan Crafts',
       description: 'Handmade local crafts',
       rating: 4.6,
-      productsCount: 18,
+      productCount: 18,
       image: '/placeholder.svg',
       location: 'Kisumu',
+      subscriptionTier: 'basic'
     },
     {
       id: 's3',
       name: 'Fresh Dairy',
       description: 'Farm fresh dairy products',
       rating: 4.9,
-      productsCount: 12,
+      productCount: 12,
       image: '/placeholder.svg',
       location: 'Nakuru',
+      subscriptionTier: 'basic'
     }
   ];
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
       <section className="py-12 px-4 md:py-20 bg-gradient-to-br from-market-light to-white">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
@@ -93,7 +92,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Features */}
       <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 text-market-dark">
@@ -131,7 +129,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Featured Products */}
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
@@ -158,7 +155,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Featured Sellers */}
       <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
@@ -179,7 +175,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-16 px-4 bg-market-primary text-white">
         <div className="container mx-auto text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-4">Start Selling Your Products Today</h2>
